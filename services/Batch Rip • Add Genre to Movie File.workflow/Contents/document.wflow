@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>246</string>
+	<key>AMApplicationVersion</key>
+	<string>2.1</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<true/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>1.0</string>
+				<key>AMParameterProperties</key>
+				<dict>
+					<key>genrePopup</key>
+					<dict/>
+				</dict>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>AMRequiredResources</key>
+				<array/>
+				<key>ActionBundlePath</key>
+				<string>/Users/robertyamada/Library/Automator/Add Genre to Movie File.action</string>
+				<key>ActionName</key>
+				<string>Add Genre to Movie File</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>genrePopup</key>
+					<string>Action &amp; Adventure</string>
+				</dict>
+				<key>Application</key>
+				<array>
+					<string>Finder</string>
+				</array>
+				<key>BundleIdentifier</key>
+				<string>com.batchRip.Automator.Add_Genre_to_Movie_File</string>
+				<key>CFBundleVersion</key>
+				<string>1.0</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryMovies</string>
+				</array>
+				<key>Class Name</key>
+				<string>AMShellScriptAction</string>
+				<key>InputUUID</key>
+				<string>6DCEAB3B-777D-40CD-BA84-4575992D9BE6</string>
+				<key>Keywords</key>
+				<array>
+					<string>batch</string>
+					<string>rip</string>
+					<string>genre</string>
+					<string>tag</string>
+					<string>macjedi</string>
+					<string>movie</string>
+				</array>
+				<key>OutputUUID</key>
+				<string>9F56D7D1-50DD-4912-B696-284806972C53</string>
+				<key>ShowWhenRun</key>
+				<true/>
+				<key>UUID</key>
+				<string>91CC1F02-04D2-43BA-9E37-9546164F0610</string>
+				<key>UnlocalizedApplications</key>
+				<array>
+					<string>Finder</string>
+				</array>
+				<key>arguments</key>
+				<dict>
+					<key>0</key>
+					<dict>
+						<key>default value</key>
+						<string>Action &amp; Adventure</string>
+						<key>name</key>
+						<string>genrePopup</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>0</string>
+					</dict>
+				</dict>
+				<key>isViewVisible</key>
+				<true/>
+				<key>location</key>
+				<string>320.000000:446.000000</string>
+				<key>nibPath</key>
+				<string>/Users/robertyamada/Library/Automator/Add Genre to Movie File.action/Contents/Resources/English.lproj/main.nib</string>
+			</dict>
+			<key>isViewVisible</key>
+			<true/>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>state</key>
+	<dict>
+		<key>AMLogTabViewSelectedIndex</key>
+		<integer>1</integer>
+		<key>libraryState</key>
+		<dict>
+			<key>actionsMajorSplitViewState</key>
+			<dict>
+				<key>expandedPosition</key>
+				<real>177</real>
+				<key>subviewState</key>
+				<array>
+					<string>0.000000, 0.000000, 410.000000, 475.000000, NO</string>
+					<string>0.000000, 476.000000, 410.000000, 176.000000, NO</string>
+				</array>
+			</dict>
+			<key>actionsMinorSplitViewState</key>
+			<dict>
+				<key>expandedPosition</key>
+				<real>299</real>
+				<key>subviewState</key>
+				<array>
+					<string>0.000000, 0.000000, 176.000000, 475.000000, NO</string>
+					<string>177.000000, 0.000000, 233.000000, 475.000000, NO</string>
+				</array>
+			</dict>
+			<key>variablesMajorSplitViewState</key>
+			<dict>
+				<key>expandedPosition</key>
+				<real>0.0</real>
+				<key>subviewState</key>
+				<array>
+					<string>0.000000, 0.000000, 381.000000, 555.000000, NO</string>
+					<string>0.000000, 556.000000, 381.000000, 96.000000, NO</string>
+				</array>
+			</dict>
+			<key>variablesMinorSplitViewState</key>
+			<dict>
+				<key>expandedPosition</key>
+				<real>0.0</real>
+				<key>subviewState</key>
+				<array>
+					<string>0.000000, 0.000000, 163.000000, 555.000000, NO</string>
+					<string>164.000000, 0.000000, 217.000000, 555.000000, NO</string>
+				</array>
+			</dict>
+		</dict>
+		<key>majorSplitViewState</key>
+		<dict>
+			<key>expandedPosition</key>
+			<real>287</real>
+			<key>subviewState</key>
+			<array>
+				<string>0.000000, 0.000000, 410.000000, 697.000000, NO</string>
+				<string>411.000000, 0.000000, 640.000000, 697.000000, NO</string>
+			</array>
+		</dict>
+		<key>minorSplitViewState</key>
+		<dict>
+			<key>expandedPosition</key>
+			<real>177</real>
+			<key>subviewState</key>
+			<array>
+				<string>0.000000, 0.000000, 640.000000, 501.000000, NO</string>
+				<string>0.000000, 511.000000, 640.000000, 167.000000, NO</string>
+			</array>
+		</dict>
+		<key>windowFrame</key>
+		<string>{{0, 4}, {1050, 774}}</string>
+		<key>workflowViewScrollPosition</key>
+		<string>{{0, 0}, {640, 501}}</string>
+	</dict>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>serviceApplicationBundleID</key>
+		<string>com.apple.finder</string>
+		<key>serviceApplicationPath</key>
+		<string>/System/Library/CoreServices/Finder.app</string>
+		<key>serviceInputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject.movie</string>
+		<key>serviceOutputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.servicesMenu</string>
+	</dict>
+</dict>
+</plist>

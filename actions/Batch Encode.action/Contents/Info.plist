@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMAccepts</key>
+	<dict>
+		<key>Container</key>
+		<string>List</string>
+		<key>Optional</key>
+		<true/>
+		<key>Types</key>
+		<array>
+			<string>com.apple.cocoa.string</string>
+		</array>
+	</dict>
+	<key>AMApplication</key>
+	<string>HandBrakeCLI</string>
+	<key>AMCanShowSelectedItemsWhenRun</key>
+	<false/>
+	<key>AMCanShowWhenRun</key>
+	<true/>
+	<key>AMCategory</key>
+	<string>AMCategoryUtilities</string>
+	<key>AMDefaultParameters</key>
+	<dict>
+		<key>addTags</key>
+		<string>0</string>
+		<key>custom1080pArgs</key>
+		<string></string>
+		<key>custom720pArgs</key>
+		<string></string>
+		<key>customDvdArgs</key>
+		<string></string>
+		<key>customSdArgs</key>
+		<string></string>
+		<key>encode1080p</key>
+		<string>0</string>
+		<key>encode720p</key>
+		<string>0</string>
+		<key>encodeHdSources</key>
+		<string>0</string>
+		<key>encodePath</key>
+		<string>~/Movies/Batch Encode</string>
+		<key>encodeSD</key>
+		<string>1</string>
+		<key>growlMe</key>
+		<string>0</string>
+		<key>hbPath</key>
+		<string>/Applications/HandBrakeCLI</string>
+		<key>ignoreOptical</key>
+		<string>1</string>
+		<key>libraryFolder</key>
+		<string></string>
+		<key>moveExistingFiles</key>
+		<string>0</string>
+		<key>movieMaxTime</key>
+		<string>180</string>
+		<key>movieMinTime</key>
+		<string>80</string>
+		<key>moviePath</key>
+		<string>~/Movies/Batch Rip Movies</string>
+		<key>overrideScriptToolArgs</key>
+		<string>0</string>
+		<key>retiredFolder</key>
+		<string></string>
+		<key>runBackgroundProcess</key>
+		<string>0</string>
+		<key>tsMuxerOverrride</key>
+		<string>0</string>
+		<key>tvMaxTime</key>
+		<string>120</string>
+		<key>tvMinTime</key>
+		<string>20</string>
+		<key>tvPath</key>
+		<string>~/Movies/Batch Rip TV</string>
+		<key>useCustom1080pArgs</key>
+		<string>0</string>
+		<key>useCustom720pArgs</key>
+		<string>0</string>
+		<key>useCustomDvdArgs</key>
+		<string>0</string>
+		<key>useCustomSdArgs</key>
+		<string>0</string>
+		<key>verboseLog</key>
+		<string>0</string>
+		<key>videoKind</key>
+		<string>0</string>
+	</dict>
+	<key>AMDescription</key>
+	<dict>
+		<key>AMDOptions</key>
+		<string>Adds iTunes tags, encodes HD sources, multiple output, Growl support, move existing files, direct disc encoding</string>
+		<key>AMDRequires</key>
+		<string>This action requires the mp4v2 library installed in /usr/local. mp4v2 can be found at: http://code.google.com/p/mp4v2/. Also required is HandBrakeCLI and VLC. Optional: MakeMKV, tsMuxer.</string>
+		<key>AMDSummary</key>
+		<string>This action encodes DVD/BD content to m4v/mkv. This action receives no input from other actions, only input sources specified in the action panel. Input types: DVD-ROM, BD-ROM, VIDEO_TS, BDMV, m2ts, mkv. </string>
+	</dict>
+	<key>AMIconName</key>
+	<string>BatchRipIcon</string>
+	<key>AMKeywords</key>
+	<array>
+		<string>dvd</string>
+		<string>blu-ray</string>
+		<string>bd</string>
+		<string>batch</string>
+		<string>encode</string>
+		<string>handbrake</string>
+		<string>tag</string>
+		<string>macjedi</string>
+		<string>rip</string>
+	</array>
+	<key>AMName</key>
+	<string>Batch Encode</string>
+	<key>AMProvides</key>
+	<dict>
+		<key>Container</key>
+		<string>List</string>
+		<key>Types</key>
+		<array>
+			<string>com.apple.cocoa.string</string>
+		</array>
+	</dict>
+	<key>AMRequiredResources</key>
+	<array/>
+	<key>AMWarning</key>
+	<dict>
+		<key>Action</key>
+		<string>(* Action name to be suggested to add prior to this action to make the task safer, e.g. com.apple.Automator.CopyFiles, goes here. *)</string>
+		<key>ApplyButton</key>
+		<string>(* Button label for user to add proposed Action, e.g. Add. *)</string>
+		<key>IgnoreButton</key>
+		<string>(* Button label for user not to add proposed Action, e.g. Don't Add. *)</string>
+		<key>Level</key>
+		<integer>0</integer>
+		<key>Message</key>
+		<string>(* Warning message presented to user goes here. *)</string>
+	</dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Batch Encode v1.0.4, Copyright © 2009 Robert Yamada</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.batchRip.Automator.Batch_Encode</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Batch Encode</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.4</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.0.4</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2009 Robert Yamada</string>
+	<key>NSPrincipalClass</key>
+	<string>AMShellScriptAction</string>
+</dict>
+</plist>
