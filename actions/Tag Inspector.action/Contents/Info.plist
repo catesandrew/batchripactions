@@ -28,7 +28,7 @@
 		<key>AMDInput</key>
 		<string>Movie files</string>
 		<key>AMDRequires</key>
-		<string>This action requires AtomicParsley64 in /usr/local/bin/</string>
+		<string>This action requires the mp4v2 Library and AtomicParsley64 in /usr/local/bin/</string>
 		<key>AMDResult</key>
 		<string>Tag info displayed in window</string>
 		<key>AMDSummary</key>
@@ -67,7 +67,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Tag Inspector v1.0.5, Copyright © 2009-2010 Robert Yamada</string>
+	<string>Tag Inspector v1.0.6, Copyright © 2009-2010 Robert Yamada</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.batchRip.Automator.Tag_Inspector</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -77,11 +77,11 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2009-2010 Robert Yamada, All Rights Reserved.</string>
 	<key>NSPrincipalClass</key>

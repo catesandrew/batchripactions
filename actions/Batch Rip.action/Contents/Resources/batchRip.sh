@@ -1,6 +1,6 @@
 # !/bin/sh
 
-# batchRip.sh is a script to batch rip dvds with FairMount or MakeMKV
+# batchRip.sh is a script to batch rip dvds with Fairmount or MakeMKV
 # Copyright (C) 2009-2010  Robert Yamada
 
 #	This program is free software: you can redistribute it and/or modify
@@ -30,17 +30,34 @@
 #11.20091201.0 - Finally got around to adding subroutine to parse variables as args
 #12.20091204.0 - added discIdent Query to identify titles
 #13.20101113.0 - updated makemkv routine
+#14.20101128.0 - added loop to wait for Fairmount to mount discs as images
+#15.20101128.1 - added an adjustable sleep for multiple discs
+#16.20101202.0 - MakeMKV drive access update
+#17.20101202.1 - added Multi-disc wait time
+#18.20101202.2 - added a Fairmount timeout
+#19.20101202.3 - added skip if Fairmount can't mount
+#20.20101202.4 - sanity check update
+#21.20101202.5 - added option for MakeMKV Full BD backup
+#22.20101202.6 - added support for folder colors
+#23.20101202.7 - added a error test for copying
+#24.20101202.8 - added a test to Check Disk Free Space
+#16.20101202.0 - added test for quarantined apps
+#17.20101202.1 - added test for vlc.app
+#18.20101206.0 - added user defined discName
+
 #############################################################################
 # globals
 
 ######### CONST GLOBAL VARIABLES #########
 scriptName=`basename "$0"`
-scriptVers="1.0.5"
+scriptVers="1.0.6"
 scriptPID=$$
 E_BADARGS=65
 
 ######### USER DEFINED VARIABLES #########
-# "$moviePath" "$tvPath" "$videoKind" "$bdRom" "$dvdRom" "$growlMe" "$useOnlyMakeMKV" "$ejectDisc"
+# APPLICATION SUPPORT
+currentItemsList="$HOME/Library/Application Support/Batch Rip/currentItems.txt"
+scriptTmpPath="$HOME/Library/Application Support/Batch Rip/batchRipTmp.sh"
 
 # SET OUTPUT PATHS
 movieOutputDir="/Volumes" # set the movie search directory 
@@ -56,12 +73,13 @@ videoKind="TV Show" # Sets Default Video Kind
 makeFoldersForMe=0	   # if set to 1, will create input & output folders if they don't exist
 saveLog="1"			   # saves session log to ~/Library/Logs/BatchRipActions
 skipDuplicates="1"     # if set to 0, if folder with same name exists, will copy disc and append pid # to name
+discDelay="20"
+copyDelay="20"
+fullBdBackup="0"
 
 # SET DEFAULT TOOL PATHS
-fairmountPath="/Applications/FairMount.app"
-makemkvconPath="/Applications/MakeMKV.app/Contents/MacOS/makemkvcon" # path to makemkvcon
-mkvinfoPath="/usr/local/bin/mkvinfo" # path to mkvinfo
-mkvmergePath="/usr/local/bin/mkvmerge" # path to mkvmerge
+fairmountPath="/Applications/Fairmount.app" # path to Fairmount.app
+makemkvPath="/Applications/MakeMKV.app" # path to MakeMKV.app
 growlNotify="/usr/local/bin/growlnotify"     # Path to growlNotify tool
 
 # SET MIN AND MAX TRACK TIME
@@ -115,6 +133,12 @@ parseVariablesInArgs() # Parses args passed from main.command
 			shift ;;
 			( --maxTrackTimeMovie ) maxTrackTimeMovie=$2
 			shift ;;
+			( --discDelay ) discDelay=$2
+			shift ;;
+			( --copyDelay ) copyDelay=$2
+			shift ;;
+			( --fullBdBackup ) fullBdBackup=$2
+			shift ;;
 			( * ) echo "Args not recognized" ;;
 		esac
 		shift
@@ -142,10 +166,10 @@ makeFoldersForMe() # Creates the output folders when makeFoldersForMe is set to 
 sanityCheck () # Checks that apps are installed and input/output paths exist
 {
 	
-	toolList="$fairmountPath"
+	toolList="$fairmountPath:Fairmount.app"
 
 	if [[ $encodeHdSources -eq 1 || $onlyMakeMKV -eq 1 ]]; then
-		toolList="$toolList|$makemkvconPath"
+		toolList="$toolList|$makemkvPath:MakeMKV.app"
 	fi
 	if [[ $growlMe -eq 1 ]]; then
 		toolList="$toolList|$growlNotifyPath"
@@ -154,19 +178,33 @@ sanityCheck () # Checks that apps are installed and input/output paths exist
 	toolList=`echo $toolList | tr ' ' '\007' | tr '|' '\n'`
 	for eachTool in $toolList
 	do
-		toolPath=`echo $eachTool | tr '\007' ' '`
-		toolName=`echo "$toolPath" | sed 's|.*/||'`
-		if [ ! -x "$toolPath" ]; then
+		toolPath=`echo $eachTool | sed 's|:.*||' | tr '\007' ' '`
+		toolNameUser=`echo "$toolPath" | sed -e 's|.*/||'`
+		toolName=`echo "$eachTool" | sed -e 's|.*:||' | tr '\007' ' '`
+		if [ ! "$toolNameUser" = "$toolName" ]; then
+			echo -e "\n    ERROR: $toolNameUser; was expecting $toolName command tool"
+			toolDir=`dirname "$toolPath"`
+			toolPath=`verifyFindCLTool "$toolPath" "$toolName"`
+			echo "    ERROR: attempting to use tool at $toolPath"
+			echo ""
+		fi
+		if [[ ! -x "$toolPath" && ! -e "$toolPath" ]]; then
 				echo -e "\n    ERROR: $toolName command tool is not setup to execute"
-				toolPath=`verifyFindCLTool "$toolPath"`
+				toolDir=`dirname "$toolPath"`
+				toolPath=`verifyFindCLTool "$toolDir" "$toolName"`
 				echo "    ERROR: attempting to use tool at $toolPath"
 				echo ""
-			if [ ! -x "$toolPath" ]; then
+			if [[ ! -x "$toolPath" && ! -e "$toolPath" ]]; then
 				echo "    ERROR: $toolName command tool could not be found"
 				echo "    ERROR: $toolName can be installed in ./ /usr/local/bin/ /usr/bin/ ~/ or /Applications/"
 				echo ""
 				errorLog=1
 			fi
+		fi
+		isQuarantined=`xattr -p com.apple.quarantine "$toolPath" 2> /dev/null`
+		if [[ -e "$toolPath" && ! -z "$isQuarantined" ]]; then
+			echo -e "\nWARNING: $toolName is currently listed as QUARANTINED because it's an application downloaded from the Internet. You must LAUNCH and AUTHORIZE $toolName FIRST, before running this action. Will continue, but Action may fail if the OS prevents the app from launching."
+			echo ""
 		fi
 	done
 	
@@ -187,6 +225,23 @@ sanityCheck () # Checks that apps are installed and input/output paths exist
 	# exit if sanity check failed
 	if [[ errorLog -eq 1 ]]; then
 		exit $E_BADARGS
+	else
+		fairmountDir=`dirname "$fairmountPath"`
+		fairmountPath=`verifyFindCLTool "$fairmountDir" "Fairmount.app"`
+		if [[ $encodeHdSources -eq 1 || $onlyMakeMKV -eq 1 ]]; then
+			makemkvDir=`dirname "$makemkvPath"`
+			makemkvPath=`verifyFindCLTool "$makemkvDir" "MakeMKV.app"`
+			makemkvconPath=`verifyFindCLTool "${makemkvPath}/Contents/MacOS" "makemkvcon"`
+		fi
+		if [[ $growlMe -eq 1 ]]; then
+			growlnotifyDir=`dirname "$growlNotifyPath"`
+			growlNotifyPath=`verifyFindCLTool "$growlnotifyDir" "growlnotify"`
+		fi
+	fi
+	
+	# check for VLC install
+	if [ ! -e "${fairmountDir}/VLC.app" ]; then
+		echo -e "\nWARNING: VLC.app was not found in ${fairmountDir}. This Action assumes VLC is installed in the same directory as Fairmount. Will continue, but Action may fail if VLC.app is not installed."
 	fi
 	
 	# get onlyMakeMKV setting for setup info
@@ -212,25 +267,46 @@ sanityCheck () # Checks that apps are installed and input/output paths exist
 		then ejectDiscStatus="No"
 		else ejectDiscStatus="Yes"	
 	fi
-	
+
+	# get fullBdBackup setting for setup info
+	if [[ fullBdBackup -eq 0 ]]; 
+		then backupBdStatus="No"
+		else backupBdStatus="Yes"	
+	fi	
 }	
 
 verifyFindCLTool() # Attempt to find tool path when default path fails
 {
-	toolPath="$1"
-	toolName=`echo "$1" | sed 's|.*/||'`
-	
-	if [ ! -x "$toolPath" ]; then
-		if echo "$toolName" | egrep -i "FairMount" > /dev/null ; then
-			toolPathTMP="/Applications/${toolName}"
-		else
-			toolPathTMP=`PATH=.:/Applications:/:/usr/bin:/usr/local/bin:$HOME:$PATH which $toolName | sed '/^[^\/]/d' | sed 's/\S//g'`
-		fi		
+	toolDir="$1"
+	toolName="$2"
+	toolPath="${1}/${2}"
+	if [ ! -x "$toolPath" ];
+	then
+		toolPathTMP=`PATH=.:/Applications:/:/usr/bin:/usr/local/bin:$HOME:$PATH which $toolName | sed '/^[^\/]/d' | sed 's/\S//g'`
+		
 		if [ ! -z $toolPathTMP ]; then 
 			toolPath=$toolPathTMP
+		else
+			appPathTMP=`find /Applications /usr/bin /usr/local/bin/ $HOME -maxdepth 1 -name "$toolName" | grep -m1 ""`
+			if [[ ! -z "$appPathTMP" ]]; then
+				toolPath="$appPathTMP"
+			fi
 		fi
 	fi
 	echo "$toolPath"
+}
+
+checkDiskSpace () 
+{
+	theSource="$1"
+	theDestination="$2"
+	sourceSize=$(du -c "$theSource" | grep "total" | sed -e 's|^ *||g' -e 's|	total||g')
+	freeSpace=$(df "$theDestination" | grep "/" | awk -F\  '{print $4}')
+	if [[ $sourceSize -gt $freeSpace ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
 processVariables () 
@@ -238,7 +314,7 @@ processVariables ()
 	deviceName=`diskutil info "$1" | grep "Device / Media Name:" | sed 's|.* ||'`
 	discType=`diskutil info "$1" | grep "Optical Media Type" | sed 's|.*: *||'`
 	discName=`diskutil info "$1" | grep "Volume Name:" | sed 's|.*: *||'`
-	deviceNum=`echo "$deviceList" | grep "$deviceName" | awk -F: '{print $1-1}'`
+	#deviceNum=`echo "$deviceList" | grep "$deviceName" | awk -F: '{print $1-1}'`
 	if [ "$discType" = "DVD-ROM" ]; then
 			thisDisc=`echo "$1" | tr ' ' '\007' | tr '\000' ' '`
 			dvdList="$dvdList $thisDisc"
@@ -257,8 +333,12 @@ processDiscs ()
 	deviceName=`diskutil info "$1" | grep "Device / Media Name:" | sed 's|.* ||'`
 	discType=`diskutil info "$1" | grep "Optical Media Type" | sed 's|.*: *||'`
 	discName=`diskutil info "$1" | grep "Volume Name:" | sed 's|.*: *||'`
-	deviceNum=`echo "$deviceList" | grep "$deviceName" | awk -F: '{print $1-1}'`
+	sourceName=`diskutil info "$1" | grep "Volume Name:" | sed 's|.*: *||'`	
+	deviceID=`diskutil info "$1" | grep "Device Identifier:" | sed 's|.* ||'`
+	deviceNum=`"$makemkvconPath" -r --directio=false info disc:list | egrep "DRV\:.*$deviceName.*$deviceID" | sed -e 's|DRV:||' -e 's|,.*||'`
+	#deviceNum=`echo "$deviceList" | grep "$deviceName" | awk -F: '{print $1-1}'`
 	userVideoKind=`grep "$1" < $tmpFolder/currentItems.txt | awk -F: '{print $2}'`
+	userDiscName=`grep "$1" < $tmpFolder/currentItems.txt | awk -F: '{print $3}'`
 	discCount=`echo "$dvdList" | grep -c ""`
 	if [ ! -z "$userVideoKind" ]; then
 		videoKind="$userVideoKind"
@@ -269,17 +349,22 @@ processDiscs ()
 		outputDir="$tvOutputDir"
 	fi
 	
-	if [[ -d "/Volumes/$discName/VIDEO_TS" && ! onlyMakeMKV -eq 1 ]]; then
-		
-		# get name from discIdent
-		getNameFromDiscIdent=$(discIdentQuery "$sourcePath")
-		if [ ! -z "$getNameFromDiscIdent" ]; then
-			discName="$getNameFromDiscIdent"
+	if [[ -d "/Volumes/${sourceName}/VIDEO_TS" && ! onlyMakeMKV -eq 1 ]]; then
+
+		# set disc name to user's disc name
+		if [ ! -z "$userDiscName" ]; then
+			discName="$userDiscName"
+		else
+			# get name from discIdent
+			getNameFromDiscIdent=$(discIdentQuery "$sourcePath")
+			if [ ! -z "$getNameFromDiscIdent" ]; then
+				discName="$getNameFromDiscIdent"
+			fi
 		fi
-		
-		# copy DVDs with FairMount
+
+		# copy DVDs with Fairmount
 		echo ""
-		echo "*Scanning ${discType}: $discName "
+		echo "*Processing ${discType}: $sourceName "
 		if [[ -d "$outputDir"/"$discName" && skipDuplicates -eq 0 ]]; then
 			echo "  WARNING: $discName already exists in output directory…"
 			discName="${discName}-${scriptPID}"
@@ -288,22 +373,27 @@ processDiscs ()
 		
 		if [[ ! -d "$outputDir"/"$discName" || skipDuplicates -eq 0 ]]; then
 		# get Fairmount PID
-		PID=`ps uxc | grep -i "Fairmount" | awk '{print $2}'`
+		#PID=`ps uxc | grep -i "Fairmount" | awk '{print $2}'`
 
 		# launch Fairmount
-		if [ -z "$PID" ]; then
-			open "$fairmountPath"
-			if [[ discCount -gt 1 ]]; then
-				sleep 30
-			else
-				sleep 10
-			fi
-		fi
+		#if [ -z "$PID" ]; then
+		#	open "$fairmountPath"
+		#	echo "  Waiting $copyDelay seconds for Fairmount to launch…"
+		#	sleep "$copyDelay"
+		#fi
 		
-		ditto --noacl -v "$sourcePath" "$outputDir"/"$discName"
-		chmod -R 755 "$outputDir"/"$discName"
-		setFinderComment "$outputDir"/"$discName" "$videoKind"
-		echo -e "$discName\nFinished:" `date "+%l:%M %p"` "\n" >> ${tmpFolder}/growlMessageRIP.txt &
+			ditto --noacl -v "$sourcePath" "$outputDir"/"$discName"
+			if [ $? -gt 0 ]; then
+				echo "  ERROR: $sourceName failed during copying"
+				# set color label of disc folder to red
+				setLabelColor "$outputDir"/"$discName" "2" &
+			else
+				chmod -R 755 "$outputDir"/"$discName"
+				setFinderComment "$outputDir"/"$discName" "$videoKind"
+				# set color label of disc folder to yellow
+				setLabelColor "$outputDir"/"$discName" "3" &
+				echo -e "$discName\nFinished:" `date "+%l:%M %p"` "\n" >> ${tmpFolder}/growlMessageRIP.txt &
+			fi
 		else
 			echo -e "$discName\nSkipped because it already exists\n" >> $tmpFolder/growlMessageRIP.txt &
 			echo "  Skipped because folder already exists"
@@ -314,50 +404,96 @@ processDiscs ()
 	if [[ "$discType" = "BD-ROM" || onlyMakeMKV -eq 1  ]]; then
 		
 		if [ ! "$discType" = "BD-ROM" ]; then
-			# get name from discIdent
-			getNameFromDiscIdent=$(discIdentQuery "$sourcePath")
-			if [ ! -z "$getNameFromDiscIdent" ]; then
-				discName="$getNameFromDiscIdent"
+			# set disc name to user's disc name
+			if [ ! -z "$userDiscName" ]; then
+				discName="$userDiscName"
+			else
+				# get name from discIdent
+				getNameFromDiscIdent=$(discIdentQuery "$sourcePath")
+				if [ ! -z "$getNameFromDiscIdent" ]; then
+					discName="$getNameFromDiscIdent"
+				fi
+			fi
+		else
+			# set disc name to user's disc name
+			if [ ! -z "$userDiscName" ]; then
+				discName="$userDiscName"
 			fi
 		fi
 		
-		# make an MKV for each title of a BD, or DVD with makeMKV (if onlyMakeMKV is set to 1)
-		echo ""
-		echo "*Scanning ${discType}: $discName "
+		if [[ "$fullBdBackup" -eq 0 ]]; then
+			# make an MKV for each title of a BD, or DVD with makeMKV (if onlyMakeMKV is set to 1)
+			echo -e "\n*Processing ${discType}: $sourceName "
 
-		# get the track number of tracks which are within the time desired based on video kind
-		if [ "$videoKind" = "TV Show" ]; then
-			trackFetchList=`getTrackListMakeMKV $minTrackTimeTV $maxTrackTimeTV`
-		elif [ "$videoKind" = "Movie" ]; then
-			trackFetchList=`getTrackListMakeMKV $minTrackTimeMovie $maxTrackTimeMovie`
-		fi
+			# Set scan command and track info
+			"$makemkvconPath" -r --directio=false info disc:$deviceNum | egrep 'TINFO\:.,9,0' > "${tmpFolder}/${deviceNum}_titleInfo.txt"
+			trackInfo=`cat "${tmpFolder}/${deviceNum}_titleInfo.txt"`
+			
+			# get the track number of tracks which are within the time desired based on video kind
+			if [ "$videoKind" = "TV Show" ]; then
+				trackFetchList=`getTrackListMakeMKV $minTrackTimeTV $maxTrackTimeTV "$trackInfo"`
+			elif [ "$videoKind" = "Movie" ]; then
+				trackFetchList=`getTrackListMakeMKV $minTrackTimeMovie $maxTrackTimeMovie "$trackInfo"`
+			fi
 					
-		printTrackFetchList "$trackFetchList"
+			printTrackFetchList "$trackFetchList"
 
-		# process each track in the track list
-		for aTrack in $trackFetchList
-		do
-			if [ ! -e "${outputDir}/${discName}-${aTrack}.mkv" ]; then
-				# create tmp folder for source
-				discNameALNUM=`echo "$discName" | sed 's/[^[:alnum:]^-^_]//g'`
-				sourceTmpFolder="${tmpFolder}/${discNameALNUM}"
-				if [ ! -e "$sourceTmpFolder" ]; then
-					mkdir "$sourceTmpFolder"
+			# process each track in the track list
+			for aTrack in $trackFetchList
+			do
+				# set the output file name based on video kind
+				if [ "$videoKind" = "TV Show" ]; then
+					outFile="${outputDir}/${discName}-${aTrack}.mkv"
+				elif [ "$videoKind" = "Movie" ]; then
+					outFile="${outputDir}/${discName}.mkv"
 				fi
-				# makes an mkv file from the HD source
+				outFileName=`basename "$outFile"`
+				if [ ! -e "$outFile" ]; then
+					# create tmp folder for source
+					discNameALNUM=`echo "$discName" | sed 's/[^[:alnum:]^-^_]//g'`
+					sourceTmpFolder="${tmpFolder}/${discNameALNUM}"
+					if [ ! -e "$sourceTmpFolder" ]; then
+						mkdir "$sourceTmpFolder"
+					fi
+					# makes an mkv file from the HD source
+					makeMKV &
+					if [ $? -gt 0 ]; then
+						echo "  ERROR: $sourceName failed during copying"
+						# set color label of output file to red
+						setLabelColor "$outFile" "2" &
+					fi
+					wait
+					setFinderComment "$outFile" "$videoKind"
+					# set color label of output file to yellow
+					setLabelColor "$outFile" "3" &
+					echo -e "${outFileName}\nFinished:" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageRIP.txt &
+				else
+					echo ""
+					echo "  ${outFileName} Skipped because file already exists"
+					echo "  Note: Rename existing file if this is a new disc with the same name"
+				fi
+			done
+		else
+			if [ ! -e "${outputDir}/${discName}" ]; then
+				mkdir "${outputDir}/${discName}"
 				makeMKV &
+				if [ $? -gt 0 ]; then
+					echo "  ERROR: $sourceName failed during copying"
+					# set color label of disc folder to red
+					setLabelColor "${outputDir}/${discName}" "2" &
+				fi
 				wait
-				setFinderComment "${outputDir}/${discName}-${aTrack}.mkv" "$videoKind"
+				setFinderComment "${outputDir}/${discName}" "$videoKind"
+				# set color label of disc folder to yellow
+				setLabelColor "${outputDir}/${discName}" "3" &
 				echo -e "${discName}\nFinished:" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageRIP.txt &
 			else
-				echo ""
-				echo "  ${discName}-${aTrack}.mkv Skipped because file already exists"
+				echo "  ${discName} Skipped because it already exists"
 				echo "  Note: Rename existing file if this is a new disc with the same name"
 			fi
-		done		
+		fi		
 		echo -e "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"		
 	fi
-
 }
 
 discIdentQuery () 
@@ -394,49 +530,99 @@ discIdentQuery ()
 
 getTrackListMakeMKV() # Gets the only the tracks with in the min/max duration
 {
-	aReturn=""
-	duplicateList=""
+	#	Three input arguments are are needed. 
+	#	arg1 is the minimum time in minutes selector
+	#	arg2 is the maximum time in minutes selector
+	#	arg3 is the raw text stream from the info call to makemkvcon
+	#	returns: a list of track numbers of tracks within the selectors
+	
+	if [ $# -lt 2 ]; then
+		return ""
+	fi
 
-	#	parse track info for BD optical disc
-	#   gets a list of tracks added by makemkv, weeds out angle2 & 3 tracks
 	minTime="$1"
 	maxTime="$2"
-	minTimeSecs=$[$minTime*60]
-	trackList=`"$makemkvconPath" -r --minlength=$minTimeSecs info disc:$deviceNum | egrep 'TINFO\:.,9,0'`
-	#scanTitles=`"$makemkvconPath" info disc:$deviceNum | egrep '(003036:000000:0000|003316:000000:0000 |003313:000000:0000|003317:000000:0000)' | sed 's|003316:000000:0000.* in file||g' | tr '\n' ',' | sed -e 's|title #[0-9]|&\||g' | tr '|' '\n' | sed -e 's|,|\||g' -e 's|\| |\||g' -e 's|^ ||' -e 's| |+|g' -e 's|^\|||' -e 's|\|$||' | grep -v "angle+2" | grep -v "angle+3"`
-	# BDresult=00000.m2ts|003313:000000:0000+File+00012.mpls+was+added+as+title+#0
-	# DVDresult=003036:000000:0000+Title+#0+was+added+(41+cell(s)|1:54:42)
+	shift
+	allTrackText="$*"
+	aReturn=""
+	duplicateList=""
+	#minTimeSecs=$[$minTime*60]
 
+	#	parse track info for BD optical disc
+	#   gets a list of tracks added by makemkv
+	trackList=`eval "echo \"$allTrackText\""`
 	trackNumber=""
 	for aline in $trackList
 	do
 		trackNumber=`echo $aline | sed 's|TINFO:||' | sed 's|,.*||'`
-		set -- `echo $aline | grep '[0-9]:[0-9].:[0-9].' | sed -e 's|.*,\"||g' -e 's|"||g' -e 's/:/ /g'`
-		if [ $3 -gt 29 ];
+		set -- `echo $aline | sed -e 's|.*,||g' -e 's|"||g' -e 's/:/ /g'`
+		if [[ $((10#$3)) -gt 29 ]];
 			then let trackTime=(10#$1*60)+10#$2+1
 		else let trackTime=(10#$1*60)+10#$2
 		fi
 		if [[ $trackTime -gt $minTime && $trackTime -lt $maxTime ]];
 			then titleList="$titleList $trackNumber"
 		fi
-
 		if [ "$videoKind" = "Movie" ]; then
 			aReturn=`echo "$titleList" | awk -F\  '{print $1}'`
 		elif [ "$videoKind" = "TV Show" ]; then
 			aReturn="$titleList"
 		fi
 	done
-
-	# returns the final list of titles to be encoded	
 	echo "$aReturn"
 }
 
-printTrackFetchList() # Prints the tracks to encode for each source
+getTrackListAllTracks() # Creates a list of all tracks and duration
+{
+	allTrackText="$*"
+	#returnTitles=""
+	getTrackList=""
+	trackTime=""
+	#	parse track info for BD optical disc and folder input
+	#	gets a list of tracks added by makemkv
+	getTrackList=`eval "echo \"$allTrackText\""`
+	trackNumber=""
+	for aline in $getTrackList
+	do
+		trackNumber=`echo $aline | sed 's|TINFO:||' | sed 's|,.*||'`
+		set -- `echo $aline | sed -e 's|.*,||g' -e 's|"||g' -e 's/:/ /g'`
+		if [[ $((10#$3)) -gt 29 ]];
+			then let trackTime=(10#$1*60)+10#$2+1
+		else let trackTime=(10#$1*60)+10#$2
+		fi
+		if [[ $trackTime -gt 1 ]]; then
+			returnTitles="$returnTitles - Track ${trackNumber} Duration: $trackTime min.|"
+		fi
+	done
+	echo "$returnTitles" | tr '|' '\n' | sed 's|^|   |g'
+}
+
+printTrackFetchList() # Prints the tracks to extract for each source
 {
 	if [ ! -z "$1" ]; then
 		echo "  Will copy the following tracks: `echo $1 | sed 's/ /, /g'` "
 	else
-		echo "  No tracks on this disc are longer then the minimum track time setting"
+		trackInfoTest=$(cat "${tmpFolder}/${deviceNum}_titleInfo.txt")
+		if [[ ! -z "$trackInfoTest" ]]; then
+			if [ "$videoKind" = "Movie" ]; 
+				then minTime="$minTrackTimeMovie" && maxTime="$maxTrackTimeMovie"
+				else minTime="$minTrackTimeTV" && maxTime="$maxTrackTimeTV"
+			fi
+			echo "  No tracks found between ${minTime}-${maxTime} minutes ($videoKind)."
+			getTrackListAllTracks "$trackInfo"
+		else
+			# Check for MakeMKV Trial Expired & Failed Disc
+			checkMakeMkvTrial=$("$makemkvconPath" --directio=false info disc:$deviceNum | egrep -i '(evaluation|failed)' | tr '\n' ' ')
+			if [ ! -z "$checkMakeMkvTrial" ]; then
+				echo -e "  ERROR MakeMKV: \c"
+				echo "$checkMakeMkvTrial"
+			else
+				echo "  ERROR: No tracks found or failed to scan source."
+				echo "  Check disc, application, and settings in Automator."
+			fi			
+		fi
+		# set color label of disc folder to red
+		setLabelColor "$folderPath" "2" > /dev/null
 	fi
 	echo ""
 }
@@ -459,24 +645,24 @@ isPIDRunning() # Checks on the status of background processes
 makeMKV() # Makes an mkv from a title using a disc as source. Extracts main audio/video, no subs.
 {
 	tmpFile="${outputDir}/title0${aTrack}.mkv"
-	outFile="${outputDir}/${discName}-${aTrack}.mkv"
-	audioLang=`echo "$1" | cut -c 1-3 | tr [A-Z] [a-z]`
-	makemkvconPath=`verifyFindCLTool "$makemkvconPath"`
-	mkvinfoPath=`verifyFindCLTool "$mkvinfoPath"`
-	mkvmergePath=`verifyFindCLTool "$mkvmergePath"`
-
 	# uses makeMKV to create mkv file from selected track
 	# makemkvcon includes all languages and subs, no way to exclude unwanted items
-	echo ""
-	echo "*Creating ${discName}-${aTrack}.mkv from Track: ${aTrack}"
-	if [ ! -e "$outFile" ]; then
-		
-		cmd="\"$makemkvconPath\" mkv --messages=-null --progress=${sourceTmpFolder}/${aTrack}-makemkv.txt --decrypt disc:$deviceNum $aTrack \"$outputDir\" > /dev/null 2>&1"
+	verboseLog=0
+	if [[ verboseLog -eq 0 ]]; then
+		if [[ "$fullBdBackup" = 0 ]]; then
+			echo "*Creating ${outFileName} from Track: ${aTrack}"
+			progressFile="${sourceTmpFolder}/${aTrack}-makemkv.txt"
+			cmd="\"$makemkvconPath\" mkv --messages=-null --progress=\"$progressFile\" disc:$deviceNum $aTrack \"$outputDir\" > /dev/null 2>&1"
+		else
+			echo "*Copying: ${discName}"
+			progressFile="${outputDir}/${discName}/${discName}-makemkv.txt"
+			cmd="\"$makemkvconPath\" backup --decrypt --messages=-null --progress=\"$progressFile\" disc:$deviceNum \"${outputDir}/${discName}\" > /dev/null 2>&1"
+		fi
 		eval $cmd &
 		cmdPID=$!
 		while [ `isPIDRunning $cmdPID` -eq 1 ]; do
-			if [[ -e "$tmpFile" && -e "${sourceTmpFolder}/${aTrack}-makemkv.txt" ]]; then
-				cmdStatusTxt="`tail -n 1 ${sourceTmpFolder}/${aTrack}-makemkv.txt | grep 'Current' | sed 's|.*progress|  Progress|'`"
+			if [[ -e "$progressFile" ]]; then
+				cmdStatusTxt="`tail -n 1 \"$progressFile\" | grep 'Total progress' | sed 's|.*Total progress|  Progress|'`"
 				echo "$cmdStatusTxt"
 				printf "\e[1A"
 			else
@@ -487,17 +673,31 @@ makeMKV() # Makes an mkv from a title using a disc as source. Extracts main audi
 		done
 		echo ""
 		wait $cmdPID
+	elif [[ verboseLog -eq 1 ]]; then
+		if [[ "$fullBdBackup" = 0 ]]; then
+			echo "*Creating ${outFile} from Track: ${aTrack}"
+			progressFile="${sourceTmpFolder}/${aTrack}-makemkv.txt"
+			cmd="\"$makemkvconPath\" mkv --progress=-same disc:$deviceNum $aTrack \"$outputDir\""
+		else
+			echo "*Copying: ${discName}"
+			progressFile="${outputDir}/${discName}/${discName}-makemkv.txt"
+			cmd="\"$makemkvconPath\" backup --decrypt --progress=\-same disc:$deviceNum \"${outputDir}/${discName}\""
+		fi
+		eval $cmd
 	fi
-
 	if [[ -e "$tmpFile" && ! -e "$outFile" ]]; then
 		mv "$tmpFile" "$outFile"
 	fi
-
 }
 
 setFinderComment() # Sets the output file's Spotlight Comment to TV Show or Movie
 {
 	osascript -e "try" -e "set theFile to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to set comment of theFile to \"$2\"" -e "end try" > /dev/null
+}
+
+setLabelColor() # Sets the source folder color
+{
+	osascript -e "try" -e "set theFolder to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to set label index of theFolder to $2" -e "end try" > /dev/null
 }
 
 get_log () 
@@ -531,11 +731,19 @@ parseVariablesInArgs $*
 
 # get number of drives, if more than one, wait for discs
 deviceCount=`ioreg -iSr -w 0 -c IODVDBlockStorageDevice | grep "Device Characteristics" | sed -e 's|.*"Product Name"="||' -e 's|".*||' | grep -c ""`
-if [[ deviceCount -gt 1 ]]; then
-	echo -e "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
-	echo "Initializing Batch Rip…"
-	sleep 20
-fi
+#if [[ deviceCount -gt 1 ]]; then
+#	echo -e "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+#	echo "Initializing Batch Rip…"
+#	loop=0
+#	while [[ $loop -lt "$discDelay" ]]; do 
+#		loop=$((loop + 1))
+#		delayCountdown=$((discDelay - $loop))
+#		echo "Waiting $delayCountdown seconds for additional discs"
+#		printf "\e[1A"
+#		sleep 1
+#	done
+#	echo ""
+#fi
 
 # create tmp folder for script
 tmpFolder="/tmp/batchRip-${scriptPID}"
@@ -544,27 +752,27 @@ if [ ! -e "$tmpFolder" ]; then
 fi
 
 # copy current items list
-if [ -e /tmp/batchRip/currentItems.txt ]; then
-	grep -v "Ignore" /tmp/batchRip/currentItems.txt > $tmpFolder/currentItems.txt
-#	rm -f /tmp/batchRip/currentItems.txt
+if [ -e "$currentItemsList" ]; then
+	grep -v "Ignore" "$currentItemsList" > $tmpFolder/currentItems.txt
+#	rm -f "$currentItemsList"
 fi
 
 # perform sanity check and display errors
 sanityCheck
 
 # Get current state of Batch Rip Dispatch LaunchAgent
-batchRipDispatcherPath="$HOME/Library/LaunchAgents/com.batchRip.BatchRipDispatcher.plist"
-currentState=`launchctl list com.batchRip.BatchRipDispatcher`
-if [ -z "$currentState" ]; then
-	currentState="disabled"
-else
-	currentState="enabled"
-fi
+#batchRipDispatcherPath="$HOME/Library/LaunchAgents/com.batchRip.BatchRipDispatcher.plist"
+#currentState=`launchctl list com.batchRip.BatchRipDispatcher 2> /dev/null`
+#if [ -z "$currentState" ]; then
+#	currentState="disabled"
+#else
+#	currentState="enabled"
+#fi
 
 # Set launchd user override.plist to Disabled key to true
-if [ "$currentState" = "enabled" ]; then
-	launchctl unload -w "$batchRipDispatcherPath"
-fi
+#if [ "$currentState" = "enabled" ]; then
+#	launchctl unload -w "$batchRipDispatcherPath" 2> /dev/null
+#fi
 
 # create a list of mounted BDs/DVDs in optical drives (up to 3)
 #discSearch=`df -T udf | grep "Volumes" | awk -F\ / {'print $2'} | sed 's|^|\/|g' | tr ' ' '\007' | tr '\000' ' '`
@@ -581,8 +789,10 @@ echo "  TV Show Output directory: $tvOutputDir"
 echo "  Movie Output directory: $movieOutputDir"
 echo "  Use only MakeMKV: $onlyMakeMKVStatus"
 echo "  Encode HD Sources: $encodeHdStatus"
+echo "  Full BD Backup: $backupBdStatus (experimental)"
 echo "  Growl me when complete: $growlMeStatus"
 echo "  Eject discs when complete: $ejectDiscStatus"
+echo "  Skip disc if not decrypted in: $copyDelay seconds"
 echo "  Copy TV Shows between: ${minTrackTimeTV}-${maxTrackTimeTV} mins (for MakeMKV)"
 echo "  Copy Movies between: ${minTrackTimeMovie}-${maxTrackTimeMovie} mins (for MakeMKV)"
 echo ""
@@ -595,7 +805,8 @@ if [ ! -z "$discSearch" ]; then
 	do
 		eachdisc=`echo "$eachdisc" | tr '\007' ' '`
 		processVariables "$eachdisc"
-		echo "    $discName"
+		thisVideoKind=`grep "$eachdisc" < $tmpFolder/currentItems.txt | awk -F: '{print $2}'`
+		echo "    $discName ($discType : $thisVideoKind)"
 	done
 	echo -e "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 
@@ -608,8 +819,44 @@ if [ ! -z "$discSearch" ]; then
 		for eachdvd in $dvdList
 		do
 			eachdvd=`echo "$eachdvd" | tr '\007' ' '`
+			# DISABLED-check disk space
+			#getVideoKind=`grep "$eachdvd" < $tmpFolder/currentItems.txt | awk -F: '{print $2}'`
+			#if [ "$videoKind" = "Movie" ]; then
+				#destVolume="$movieOutputDir"
+			#elif [ "$videoKind" = "TV Show" ]; then
+				#destVolume="$tvOutputDir"
+			#fi
+			#checkDiskSpace "$eachdvd" "$destVolume"
+			#if [[ $? -eq 1 ]]; then
+				#echo -e "\n  WARNING: $eachdvd SKIPPED because hard drive is full."
+				#echo "  Will try to continue with next disc…"
+				#echo -e "$eachdvd\nSkipped because hard drive is full.\n" >> "${tmpFolder}/growlMessageRIP.txt"
+				#continue
+			#fi
+
 			if [[ onlyMakeMKV -eq 0 ]]; then
-				processDiscs "$eachdvd" &
+				# get Fairmount PID
+				PID=`ps uxc | grep -i "Fairmount" | awk '{print $2}'`
+
+				# launch Fairmount
+				if [ -z "$PID" ]; then
+					open "$fairmountPath"
+				#	echo "  Waiting $copyDelay seconds for Fairmount to launch…"
+				#	sleep "$copyDelay"
+				fi
+				while [[ `hdiutil info | grep "$eachdvd"` = "" ]]; do
+					sleep 1s
+					loop=$((loop + 1))
+					if [[ $loop -gt $copyDelay ]]; then
+						break 1
+					fi
+				done
+				if hdiutil info | grep "$sourcePath" > /dev/null; then
+					processDiscs "$eachdvd" &
+				else
+					echo "ERROR: Fairmount STALLED while reading $eachdvd"
+					echo "  Skipping $eachdvd"
+				fi
 			else
 				processDiscs "$eachdvd" &
 				wait
@@ -621,7 +868,7 @@ if [ ! -z "$discSearch" ]; then
 					sleep 1s
 					dittoPID=`ps uxc | grep -i "Ditto" | awk '{print $2}'`
 					loop=$((loop + 1))
-					if [[ loop -gt 30 ]]; then
+					if [[ $loop -gt 120 ]]; then
 						break 1
 					fi
 				done
@@ -646,9 +893,23 @@ if [ ! -z "$discSearch" ]; then
 		for eachbd in $bdList
 		do
 			eachbd=`echo "$eachbd" | tr '\007' ' '`
-			processDiscs "$eachbd" &
+			# check disk space
+			getVideoKind=`grep "$eachbd" < $tmpFolder/currentItems.txt | awk -F: '{print $2}'`
+			if [ "$videoKind" = "Movie" ]; then
+				destVolume="$movieOutputDir"
+			elif [ "$videoKind" = "TV Show" ]; then
+				destVolume="$tvOutputDir"
+			fi
+			checkDiskSpace "$eachbd" "$destVolume"
+			if [[ $? -eq 1 ]]; then
+				echo -e "\n  WARNING: $eachbd SKIPPED because hard drive is full."
+				echo "  Will try to continue with next disc…"
+				echo -e "${eachbd}\nSkipped because hard drive is full.\n" >> "${tmpFolder}/growlMessageRIP.txt"
+				continue
+			fi
+			processDiscs "$eachbd"
 		done
-		wait
+		#wait
 	fi
 		
 	# display: processing complete
@@ -669,23 +930,23 @@ else
 fi
 
 # Set launchd user override.plist to Disabled key to false
-if [ "$currentState" = "enabled" ]; then
-	launchctl load -w "$batchRipDispatcherPath"
-fi
+#if [ "$currentState" = "enabled" ]; then
+#	launchctl load -w "$batchRipDispatcherPath"
+#fi
 
 # delete script temp files
 if [ -e "$tmpFolder" ]; then
 	rm -rf $tmpFolder
 fi
 
-# delete script temp files
-if [ -e "$tmpFolder" ]; then
-	rm -rf $tmpFolder
+# delete current items textfile
+if [ -e "$currentItemsList" ]; then
+	rm -f "$currentItemsList"
 fi
 
 # delete bash script tmp file
-if [ -e /tmp/batchRipTmp.sh ]; then
-	rm -f /tmp/batchRipTmp.sh
+if [ -e "$scriptTmpPath" ]; then
+	rm -f "$scriptTmpPath"
 fi
 
 # if ejectDisc is set to 1, ejects the discs

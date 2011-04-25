@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -25,7 +25,7 @@
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict/>
 				<key>AMProvides</key>
@@ -52,7 +52,7 @@
 				<key>BundleIdentifier</key>
 				<string>com.batchRip.Automator.Rename_Movie_Items</string>
 				<key>CFBundleVersion</key>
-				<string>1.0</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -87,7 +87,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>320.500000:447.000000</string>
+				<string>320.500000:623.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Rename Movie Items.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -106,11 +106,11 @@
 			<key>actionsMajorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>176</real>
+				<real>175</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 409.000000, 476.000000, NO</string>
-					<string>0.000000, 477.000000, 409.000000, 175.000000, NO</string>
+					<string>0.000000, 0.000000, 409.000000, 652.000000, NO</string>
+					<string>0.000000, 652.000000, 409.000000, 0.000000, YES</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
@@ -119,8 +119,8 @@
 				<real>300</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 176.000000, 476.000000, NO</string>
-					<string>177.000000, 0.000000, 232.000000, 476.000000, NO</string>
+					<string>0.000000, 0.000000, 176.000000, 652.000000, NO</string>
+					<string>177.000000, 0.000000, 232.000000, 652.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMajorSplitViewState</key>
@@ -157,17 +157,17 @@
 		<key>minorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>176</real>
+			<real>166</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 641.000000, 502.000000, NO</string>
-				<string>0.000000, 512.000000, 641.000000, 166.000000, NO</string>
+				<string>0.000000, 0.000000, 641.000000, 678.000000, NO</string>
+				<string>0.000000, 678.000000, 641.000000, 0.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{0, 4}, {1050, 774}}</string>
+		<string>{{63, 14}, {1050, 774}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {641, 502}}</string>
+		<string>{{0, 0}, {641, 678}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>

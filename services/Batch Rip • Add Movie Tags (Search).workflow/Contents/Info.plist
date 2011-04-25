@@ -8,7 +8,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Batch Rip • Find and Tag Movie Items</string>
+				<string>Batch Rip • Add Movie Tags (Search)</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>runWorkflowAsService</string>

@@ -1,20 +1,18 @@
 # !/bin/sh
 
-# changelog
-# 1-20091023-0 - fixed line 786+: egrep error
-# 2-20091114-0 - changed movieTagsXml to include tmdbID
-# 3-20091119-0 - added save session log
-# 4-20091120-0 - added verbose logging for HB
-# 5-20091120-1 - fixed aReturn for Movie DVDs
-# 6-20091126-0 - added ISO88591 subroutine, add'l work on additunestags
-# 7-20091127-0 - changed tool args for improved compatibility with HB 0.9.4
-# 8-20091130-0 - added save hb scan to get track info
-# 9-20091201-0 - finally got around to adding subroutine to parse variables as args
-# 10-????????-0 - improved compatibility with MakeMKV
-# 11-????????-1 - general fixes
-# 12-????????-2 - fixed parsing of custom args
-# 13-????????-3 - added support for BDSup2Sub
-# 14-20101114-0 - added audio language support
+# changelog v1.0.6
+# 1-20101202-0 - added option to keep mkv temp file
+# 2-20101202-1 - made minor changes to verbose logging
+# 3-20101202-2 - updated sanity check
+# 4-20101202-3 - added track info test/duration feedback to print titles
+# 5-20101202-4 - changed cnid random generator
+# 6-20101202-5 - added more folder color support
+# 7-20101202-6 - added content rating and long description to tagging
+# 8-20101202-7 - changed the way we get bd title info
+# 9-20101202-8 - updated makemkv commands with drive access options
+# 10-20101202-9 - added integrity test for output files
+# 11-20101202-10 - added test to make sure there's enough disk space to encode
+# 12-20101202-11 - added support for source input via Automator
 
 #  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
@@ -36,9 +34,10 @@
 
 ######### CONST GLOBAL VARIABLES #########
 scriptName=`basename "$0"`
-scriptVers="1.0.5"
+scriptVers="1.0.6"
 scriptPID=$$
 E_BADARGS=65
+scriptTmpPath="$HOME/Library/Application Support/Batch Rip/batchEncodeTmp.sh"
 
 ######### USER DEFINED VARIABLES #########
 
@@ -51,6 +50,8 @@ cnidFile="$HOME/Library/Automator/Batch Encode.action/Contents/Resources/cnID.tx
 # SET DEFAULT TOOL PATHS
 handBrakeCliPath="/usr/local/bin/HandBrakeCLI"
 makemkvconPath="/Applications/MakeMKV.app/Contents/MacOS/makemkvcon" # path to makemkvcon
+makemkvPath="/Applications/MakeMKV.app" 				# path to MakeMKV.app
+mkvtoolnixPath="/Applications/Mkvtoolnix.app"			# path to Mkvtoolnix.app
 mkvextractPath="/usr/local/bin/mkvextract"				# path to mkvextract
 mkvinfoPath="/usr/local/bin/mkvinfo"					# path to mkvinfo
 mkvmergePath="/usr/local/bin/mkvmerge"					# path to mkvmerge
@@ -75,21 +76,27 @@ maxTrackTimeMovie="180"	# this is in minutes
 
 ######### SWITCHES & OVERRIDES (TRUE=1/FALSE=0) #########
 # SET ENCODE TYPE TO OUTPUT
-encode_DVD="0"      # if set to 1, this type of file will output
+encode_DVD2="0"      # if set to 1, this type of file will output
 encode_SD="1"       # if set to 0, this type of file will not output
 encode_720p="0"     # if set to 1, this type of file will output
 encode_1080p="0"    # if set to 0, this type of file will not output
 
-# USE CUSTOM TOOL ARGS
-useCustom1080pArgs="0"   # if set to 1, HB will use the custom settings for the source 
-useCustom720pArgs="0"    # if set to 1, HB will use the custom settings for the source  
-useCustomSdArgs="0"      # if set to 1, HB will use the custom settings for the source  
-useCustomDvdArgs="0"     # if set to 1, HB will use the custom settings for the source  
+# USE PRESET TOOL ARGS
+presetDvd="Universal"     # if set to 1, HB will use the custom settings for the source  
+presetDvd2="Apple TV 2"   # if set to 1, HB will use the custom settings for the source 
+presetSd="Universal"      # if set to 1, HB will use the custom settings for the source  
+preset720p="Apple TV 2"    # if set to 1, HB will use the custom settings for the source  
 
-custom1080pArgs="noarrgs"		# set custom args if you set useCustom1080pArgs to 1
-custom720pArgs="noarrgs"		# set custom args if you set useCustom720pArgs to 1
-customSdArgs="noarrgs"			# set custom args if you set useCustomSdArgs to 1
+# USE CUSTOM TOOL ARGS
+useCustomDvdArgs="0"   # if set to 1, HB will use the custom settings for the source 
+useCustomDvd2Args="0"     # if set to 1, HB will use the custom settings for the source  
+useCustomSdArgs="0"      # if set to 1, HB will use the custom settings for the source  
+useCustom720pArgs="0"    # if set to 1, HB will use the custom settings for the source  
+
 customDvdArgs="noarrgs"			# set custom args if you set useCustomDvdArgs to 1
+customDvd2Args="noarrgs"		# set custom args if you set customDvd2Args to 1
+customSdArgs="noarrgs"			# set custom args if you set useCustomSdArgs to 1
+custom720pArgs="noarrgs"		# set custom args if you set useCustom720pArgs to 1
 
 # OVERRIDE SCRIPT DEFAULT SETTINGS. (Not recommended for the less advanced)
 encodeHdSources="0" 		# if set to 0, will only encode VIDEO_TS (DVDs)
@@ -153,17 +160,19 @@ parseVariablesInArgs() # Parses args passed from main.command
 			shift ;;
 			( --useDefaultAudioLanguage ) useTracksDefaultAudioLanguage=$2
 			shift ;;
-			( --encode_720p ) encode_720p=$2
+			( --encode_DVD2 ) encode_DVD2=$2
 			shift ;;
 			( --encode_SD ) encode_SD=$2
 			shift ;;
-			( --encode_1080p ) encode_1080p=$2
+			( --encode_720p ) encode_720p=$2
 			shift ;;
 			( --encodeHdSources ) encodeHdSources=$2
 			shift ;;
 			( --ignoreOptical ) ignoreOptical=$2
 			shift ;;
 			( --growlMe ) growlMe=$2
+			shift ;;
+			( --keepMkvTempFile ) keepMkvTempFile=$2
 			shift ;;
 			( --videoKindOverride ) videoKindOverride=$2
 			shift ;;
@@ -177,19 +186,27 @@ parseVariablesInArgs() # Parses args passed from main.command
 			shift ;;
 			( --useCustomDvdArgs ) useCustomDvdArgs=$2
 			shift ;;
-			( --useCustom720pArgs ) useCustom720pArgs=$2
-			shift ;;
-			( --useCustom1080pArgs ) useCustom1080pArgs=$2
+			( --useCustomDvd2Args ) useCustomDvd2Args=$2
 			shift ;;
 			( --useCustomSdArgs ) useCustomSdArgs=$2
 			shift ;;
+			( --useCustom720pArgs ) useCustom720pArgs=$2
+			shift ;;
 			( --customDvdArgs ) customDvdArgs=$2
+			shift ;;
+			( --customDvd2Args ) customDvd2Args=$2
+			shift ;;
+			( --customSdArgs ) customSdArgs=$2
 			shift ;;
 			( --custom720pArgs ) custom720pArgs=$2
 			shift ;;
-			( --custom1080pArgs ) custom1080pArgs=$2
+			( --presetDvd ) presetDvd=$2
 			shift ;;
-			( --customSdArgs ) customSdArgs=$2
+			( --presetDvd2 ) presetDvd2=$2
+			shift ;;
+			( --presetSd ) presetSd=$2
+			shift ;;
+			( --preset720p ) preset720p=$2
 			shift ;;
 			( * ) echo "Args not recognized" ;;
 		esac
@@ -210,9 +227,13 @@ parseVariablesInArgs() # Parses args passed from main.command
 	libraryFolder=`echo "$libraryFolder" | tr ':' ' '`
 	retiredFolder=`echo "$retiredFolder" | tr ':' ' '`
 	customDvdArgs=`echo "$customDvdArgs" | tr '@' ' '`
-	custom720pArgs=`echo "$custom720pArgs" | tr '@' ' '`
-	custom1080pArgs=`echo "$custom1080pArgs" | tr '@' ' '`
+	customDvd2Args=`echo "$customDvd2Args" | tr '@' ' '`
 	customSdArgs=`echo "$customSdArgs" | tr '@' ' '`
+	custom720pArgs=`echo "$custom720pArgs" | tr '@' ' '`
+	presetDvd=`echo "$presetDvd" | tr '@' ' '`
+	presetDvd2=`echo "$presetDvd2" | tr '@' ' '`
+	presetSd=`echo "$presetSd" | tr '@' ' '`
+	preset720p=`echo "$preset720p" | tr '@' ' '`
 
 	# set subtitle language, BDSub2Sup requires ISO639-1 (2 char code)
 	convertToISO6391 "$nativeLanguage"
@@ -236,29 +257,39 @@ makeFoldersForMe() # Creates input/output folders
 
 sanityCheck () # Checks that apps are installed and input/output paths exist
 {
-	toolList="$handBrakeCliPath|$mp4tagsPath"
+	toolList="$handBrakeCliPath:HandBrakeCLI|$mp4tagsPath:mp4tags"
 	
 	if [[ "$addiTunesTags" -eq 1 ]]; then
-		toolList="$toolList|$xpathPath|$atomicParsley64Path"
+		toolList="$toolList|$xpathPath:xpath|$xmllintPath:xmllint|$atomicParsley64Path:AtomicParsley64"
 	fi
 	if [[ $encodeHdSources -eq 1 ]]; then
-		toolList="$toolList|$makemkvconPath|$mkvinfoPath|$mkvextractPath|$mkvmergePath"
+		toolList="$toolList|$makemkvPath:MakeMKV.app|$mkvtoolnixPath:Mkvtoolnix.app|$bdSup2SubPath:BDSup2Sub.jar"
 	fi
 	if [[ $growlMe -eq 1 ]]; then
-		toolList="$toolList|$growlNotifyPath"
+		toolList="$toolList|$growlNotifyPath:growlnotify"
 	fi
 	
 	toolList=`echo $toolList | tr ' ' '\007' | tr '|' '\n'`
 	for eachTool in $toolList
 	do
-		toolPath=`echo $eachTool | tr '\007' ' '`
-		toolName=`echo "$toolPath" | sed 's|.*/||'`
-		if [ ! -x "$toolPath" ]; then
+		toolPath=`echo $eachTool | sed 's|:.*||' | tr '\007' ' '`
+		toolNameUser=`echo "$toolPath" | sed -e 's|.*/||'`
+		toolName=`echo "$eachTool" | sed -e 's|.*:||' | tr '\007' ' '`
+		
+		if [ ! "$toolNameUser" = "$toolName" ]; then
+			echo -e "\n    ERROR: $toolNameUser; was expecting $toolName command tool"
+			toolDir=`dirname "$toolPath"`
+			toolPath=`verifyFindCLTool "$toolPath" "$toolName"`
+			echo "    ERROR: attempting to use tool at $toolPath"
+			echo ""
+		fi
+		if [[ ! -x "$toolPath" && ! -e "$toolPath" ]]; then
 				echo -e "\n    ERROR: $toolName command tool is not setup to execute"
-				toolPath=`verifyFindCLTool "$toolPath"`
+				toolDir=`dirname "$toolPath"`
+				toolPath=`verifyFindCLTool "$toolDir" "$toolName"`
 				echo "    ERROR: attempting to use tool at $toolPath"
 				echo ""
-			if [ ! -x "$toolPath" ]; then
+			if [[ ! -x "$toolPath" && ! -e "$toolPath" ]]; then
 				echo "    ERROR: $toolName command tool could not be found"
 				echo "    ERROR: $toolName can be installed in ./ /usr/local/bin/ /usr/bin/ ~/ or /Applications/"
 				echo ""
@@ -266,14 +297,6 @@ sanityCheck () # Checks that apps are installed and input/output paths exist
 			fi
 		fi
 	done
-	
-	if [[ $encodeHdSources -eq 1 && ! -e "$bdSup2SubPath" ]]; then
-		toolName=`basename "$bdSup2SubPath"`
-		echo "    ERROR: $toolName could not be found"
-		echo "    ERROR: $toolName can be installed in /Applications/"
-		echo ""
-		errorLog=1
-	fi
 	
 	# see if the input/output directories exist
 	if [[ ! -e "$movieSearchDir" ]]; then
@@ -295,26 +318,77 @@ sanityCheck () # Checks that apps are installed and input/output paths exist
 		errorLog=1
 	fi
 
-	# exit if sanity check failed
+	# exit if sanity check failed, else set tool paths
 	if [[ errorLog -eq 1 ]]; then
 		exit $E_BADARGS
+	else
+		handBrakeCliDir=`dirname "$handBrakeCliPath"`
+		handBrakeCliPath=`verifyFindCLTool "$handBrakeCliDir" "HandBrakeCLI"`
+		mp4tagsDir=`dirname "$mp4tagsPath"`
+		mp4tagsPath=`verifyFindCLTool "$mp4tagsDir" "mp4tags"`
+
+		if [[ "$addiTunesTags" -eq 1 ]]; then
+			xpathDir=`dirname "$xpathPath"`
+			xpathPath=`verifyFindCLTool "$xpathDir" "xpath"`
+			xmllintDir=`dirname "$xmllintPath"`
+			xmllintPath=`verifyFindCLTool "$xmllintDir" "xmllint"`
+			atomicParsley64Dir=`dirname "$atomicParsley64Path"`
+			atomicParsley64Path=`verifyFindCLTool "$atomicParsley64Dir" "AtomicParsley64"`
+		fi
+		if [[ $encodeHdSources -eq 1 ]]; then
+			makemkvDir=`dirname "$makemkvPath"`
+			makemkvPath=`verifyFindCLTool "$makemkvDir" "MakeMKV.app"`
+			makemkvconPath=`verifyFindCLTool "${makemkvPath}/Contents/MacOS" "makemkvcon"`
+			mkvtoolnixDir=`dirname "$mkvtoolnixPath"`
+			mkvtoolnixPath=`verifyFindCLTool "$mkvtoolnixDir" "Mkvtoolnix.app"`
+			mkvextractPath=`verifyFindCLTool "${mkvtoolnixPath}/Contents/MacOS" "mkvextract"`
+			mkvinfoPath=`verifyFindCLTool "${mkvtoolnixPath}/Contents/MacOS" "mkvinfo"`
+			mkvmergePath=`verifyFindCLTool "${mkvtoolnixPath}/Contents/MacOS" "mkvmerge"`
+			bdSup2SubDir=`dirname "$bdSup2SubPath"`
+			bdSup2SubPath=`verifyFindCLTool "$bdSup2SubDir" "BDSup2Sub.jar"`
+		fi
+		if [[ $growlMe -eq 1 ]]; then
+			growlnotifyDir=`dirname "$growlNotifyPath"`
+			growlNotifyPath=`verifyFindCLTool "$growlnotifyDir" "growlnotify"`
+		fi
 	fi
 }
 
 verifyFindCLTool() # Attempt to find tool path when default path fails
 {
-	toolPath="$1"
-	toolName=`echo "$1" | sed 's|.*/||'`
-	
+	toolDir="$1"
+	toolName="$2"
+	toolPath="${1}/${2}"
 	if [ ! -x "$toolPath" ];
 	then
 		toolPathTMP=`PATH=.:/Applications:/:/usr/bin:/usr/local/bin:$HOME:$PATH which $toolName | sed '/^[^\/]/d' | sed 's/\S//g'`
 		
 		if [ ! -z $toolPathTMP ]; then 
 			toolPath=$toolPathTMP
+		else
+			appPathTMP=`find /Applications /usr/bin /usr/local/bin/ $HOME -maxdepth 1 -name "$toolName" | grep -m1 ""`
+			if [[ ! -z "$appPathTMP" ]]; then
+				toolPath="$appPathTMP"
+			fi
 		fi
 	fi
 	echo "$toolPath"
+}
+
+parseSourceFromInput() # Searches input from Automator for valid sources to endode
+{
+	for eachSource in $1
+	do
+		# fix spaces in paths & custom tool args
+		eachSource=`echo "$eachSource" | tr ':' ' '`
+		# searches for BDMV and VIDEO_TS folders
+		findSource=`find "$eachSource" \( -maxdepth 1 -type d -name BDMV -o -type d -name VIDEO_TS \) | tr ' ' '\007' | tr '\000' ' '`
+		if [ "$findSource" = "" ]; then
+			findSource=`echo "$eachSource" | tr ' ' '\007'`
+		fi
+		discList="${discList}${findSource} "
+	done
+	#discList=`echo "$discListString" | tr ':' ' '`
 }
 
 searchForFilesAndFolders() # Searches input directories for videos to encode
@@ -322,9 +396,6 @@ searchForFilesAndFolders() # Searches input directories for videos to encode
 	# spaces in file path temporarily become /007 and paths are divided with spaces
 	discSearch=`df -T udf | grep "Volumes" | awk -F\ / {'print $2'} | sed 's|^|\/|g'` # all discs
 	discString=`echo "$discSearch" | sed 's|.*|"&"|' | tr '\n' ' '`
-	
-	# get device name of optical drives. Need to sort by device name to get disc:<num> for makeMKV 
-	deviceList=`ioreg -iSr -w 0 -c IODVDBlockStorageDevice | grep "Device Characteristics" | sed -e 's|.*"Product Name"="||' -e 's|".*||' | grep -n "" `
 	
 	if [[ ignoreOptical -eq 0 && ! -z "$discSearch" ]]; then
 		# searches movie/tv folders and optical discs
@@ -347,38 +418,44 @@ searchForFilesAndFolders() # Searches input directories for videos to encode
 			discList=`find "$movieSearchDir" "$tvSearchDir" \( -maxdepth 1 -type f -name *.mkv -or -name *.avi -or -name *.m2ts -or -name *.mp4 -or -name *.m4v -or -name *.mpg -or -name *.mov \)  | tr ' ' '\007' | tr '\000' ' ' & find "$movieSearchDir" "$tvSearchDir" -type d -name VIDEO_TS | tr ' ' '\007' | tr '\000' ' '`
 		fi
 	fi
-	
+}
+
+displaySetupInfo() # Sest the display set up info
+{
 	# sets encode string for setup info
 	encodeBd=$(echo "$discList" | grep "BDMV")
 	encodeDvd=$(echo "$discList" | grep "VIDEO_TS")
-	if [[ ! "$encodeDvd" = "" || useCustomDvdArgs -eq 1 ]]; then
+	if [[ ! "$encodeDvd" = "" ]]; then
 		if [[ useCustomDvdArgs -eq 1 ]]; 
-			then encodeString="${encodeString} CUSTOM/DVD"
-			else encodeString="${encodeString} SD/DVD"
+			then encodeString="${encodeString} DVD/CUSTOM:"
+			else encodeString="${encodeString} DVD/${presetDvd}:"
 		fi
 	fi
+	if [[ "$encode_DVD2" -eq 1 ]]; then
+		if [[ useCustomDvd2Args -eq 1 ]]; 
+			then encodeString="${encodeString} DVD2/CUSTOM:"
+			else encodeString="${encodeString} DVD2/${presetDvd2}:"
+		fi
+	fi
+	
 	if [ ! "$encodeBd" = "" ]; then
-		encodeString="${encodeString} MKV/1080p"
+		encodeString="${encodeString} MKV/1080p:"
 	fi
-	if [[ "$encode_1080p" -eq 1 ]]; then
-		if [[ useCustom1080pArgs -eq 1 ]]; 
-			then encodeString="${encodeString} CUSTOM/1080p"
-			else encodeString="${encodeString} 1080p"
-		fi
-	fi
-	if [[ "$encode_720p" -eq 1 ]]; then
-		if [[ useCustom720pArgs -eq 1 ]]; 
-			then encodeString="${encodeString} CUSTOM/720p"
-			else encodeString="${encodeString} 720p"
-		fi		
-	fi
+
 	if [[ "$encode_SD" -eq 1 ]]; then
 		if [[ useCustomSdArgs -eq 1 ]]; 
-			then encodeString="${encodeString} CUSTOM/SD"
-			else encodeString="${encodeString} SD"
+			then encodeString="${encodeString} SD/CUSTOM:"
+			else encodeString="${encodeString} SD/${presetSd}:"
 		fi
 	fi
-	encodeString=`echo $encodeString | sed -e 's| |, |g'`
+
+	if [[ "$encode_720p" -eq 1 ]]; then
+		if [[ useCustom720pArgs -eq 1 ]]; 
+			then encodeString="${encodeString} 720p/CUSTOM:"
+			else encodeString="${encodeString} 720p/${preset720p}:"
+		fi		
+	fi
+	encodeString=`echo $encodeString | sed -e 's|:|,|g' -e 's|,$||'`
 	
 	# get ignore optical setting for setup info
 	if [[ ignoreOptical -eq 1 ]]; 
@@ -421,6 +498,25 @@ searchForFilesAndFolders() # Searches input directories for videos to encode
 		then defaultAudioStatus="No"
 		else defaultAudioStatus="Yes"
 	fi
+	
+	# get keepMkvTempFile setting for setup info
+	if [[ "$keepMkvTempFile" -eq 0 ]]; 
+		then keepMkvTempFileStatus="No"
+		else keepMkvTempFileStatus="Yes"
+	fi
+}
+
+checkDiskSpace () # Checks output directory for free space
+{
+	theSource="$1"
+	theDestination="$2"
+	sourceSize=$(du -c "$theSource" | grep "total" | sed -e 's|^ *||g' -e 's|	total||g')
+	freeSpace=$(df "$theDestination" | grep "/" | awk -F\  '{print $4}')
+	if [[ $sourceSize -gt $freeSpace ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
 processVariables() # Sets the script variables used for each source
@@ -431,12 +527,17 @@ processVariables() # Sets the script variables used for each source
 	tmpDiscName=`basename "$tmpDiscPath"`
 	
 	# get discPath, discName, sourceType, etc
+	discSearch=`df -T udf | grep "Volumes" | awk -F\ / {'print $2'} | sed 's|^|\/|g'` # all discs
+	# get device name of optical drives. Need to sort by device name to get disc:<num> for makeMKV 
+	deviceList=`ioreg -iSr -w 0 -c IODVDBlockStorageDevice | grep "Device Characteristics" | sed -e 's|.*"Product Name"="||' -e 's|".*||' | grep -n "" `
 	if echo "$discSearch" | grep "$tmpDiscPath" > /dev/null ; then
 		sourceType="Optical"
 		sourcePath=`dirname "$pathToSource"`
 		discName=`basename "$sourcePath"`
 		deviceName=`diskutil info "$sourcePath" | grep "Device / Media Name:" | sed 's|.* ||'`
-		deviceNum=`echo "$deviceList" | grep "$deviceName" | awk -F: '{print $1-1}'`
+		deviceID=`diskutil info "$sourcePath" | grep "Device Identifier:" | sed 's|.* ||'`
+		deviceNum=`"$makemkvconPath" -r --directio=false info disc:list | egrep "DRV\:.*$deviceName.*$deviceID" | sed -e 's|DRV:||' -e 's|,.*||'`
+		#deviceNum=`echo "$deviceList" | grep "$deviceName" | awk -F: '{print $1-1}'`
 	elif echo "$pathToSource" | egrep -i '(BDMV|VIDEO_TS)' > /dev/null; then
 		sourceType="Folder"
 		sourcePath=`dirname "$pathToSource"`
@@ -516,6 +617,9 @@ processVariables() # Sets the script variables used for each source
 		fi
 	fi
 	
+	# set color label of movie file to green
+	setLabelColor "$folderPath" "6" &
+	
 	# create tmp folder for source
 	discNameALNUM=`echo "$discName" | sed 's/[^[:alnum:]^-^_]//g'`
 	sourceTmpFolder="${tmpFolder}/${discNameALNUM}"
@@ -530,27 +634,33 @@ trackFetchListSetup() # Sets the track list variables based on source/type
 	# sets the path for info file
 	if [ "$sourceType" = "File" ]; then
 		outFile="${folderPath}/${discName}"
-	elif [[ "$sourceType" = "Optical" && "$sourceFormat" = "DVD" ]]; then
+	#elif [[ "$sourceType" = "Optical" && "$sourceFormat" = "DVD" ]]; then
+		#outFile="${sourceTmpFolder}/${discName}"
+	elif [[ "$sourceType" = "Optical" ]]; then
 		outFile="${sourceTmpFolder}/${discName}"
 	else
 		outFile="$1"
 	fi
 	
-	handBrakeCliPath=`verifyFindCLTool "$handBrakeCliPath"`
 	# Set scan command and track info
 	if [[ "$sourceType" = "File" && ! "$fileExt" = "mkv" || "$sourceFormat" = "DVD" ]]; then
 		scanCmd="\"$handBrakeCliPath\" -i \"$sourcePath\" -t 0 /dev/null 2>&1"
 		trackInfo=`eval $scanCmd`
 		# save HB scan info
-		if [ ! -e "${outFile}_titleInfo.txt" ]; then
-			echo "$trackInfo" | egrep '[ \t]*\+' > "${outFile}_titleInfo.txt"
-		fi
+		echo "$trackInfo" | egrep '[ \t]*\+' > "${outFile}_titleInfo.txt"
 	elif [[ "$sourceType" = "File" && "$fileExt" = "mkv" ]]; then
 		scanCmd="\"$mkvinfoPath\" \"$sourcePath\""
 		trackInfo=`eval $scanCmd`
-		if [ ! -e "${outFile}_titleInfo.txt" ]; then
-			echo "$trackInfo" | egrep '[ \t]*\+' > "${outFile}_titleInfo.txt"
+		echo "$trackInfo" | egrep '[ \t]*\+' > "${outFile}_titleInfo.txt"
+	elif [[ "$sourceType" = "Folder" && "$sourceFormat" = "HD" || "$sourceType" = "Optical" && "$sourceFormat" = "HD" ]]; then
+		if [ "$sourceType" = "Folder" ]; then
+			"$makemkvconPath" -r --directio=false info file:"$sourcePath" | egrep 'TINFO\:.,9,0' > "${outFile}_titleInfo.txt"
+			trackInfo=`cat "${outFile}_titleInfo.txt"`
+		elif [ "$sourceType" = "Optical" ]; then
+			"$makemkvconPath" -r info disc:$deviceNum | egrep 'TINFO\:.,9,0' > "${outFile}_titleInfo.txt"
+			trackInfo=`cat "${outFile}_titleInfo.txt"`
 		fi
+		
 	fi
 
 	# get the track number of tracks which are within the time desired based on video kind
@@ -611,26 +721,18 @@ getTrackListWithinDuration() # Gets the only the tracks with in the min/max dura
 		done
 
 	elif [[ "$sourceType" = "File" && "$fileExt" = "mkv" ]]; then
-		#scanFileCmd="\"$mkvinfoPath\" \"$sourcePath\""
-		#scanFile=`eval $scanFileCmd`
 		aReturn=`echo "$allTrackText" | sed 's|\| *||' | tr '\n' '|' | sed 's|\|+ A track|%|g' | tr '%' '\n' | sed -e 's|^\|+ ||' -e 's|\|+|,|g' | egrep ".*Track type: video" | sed -e 's|^Track number: ||' -e 's|,.*||'`
 		
 	#	parse track info for BD optical disc and folder input
 	#	gets a list of tracks added by makemkv
 	elif [[ "$sourceFormat" = "HD" ]]; then
-		makemkvconPath=`verifyFindCLTool "$makemkvconPath"`
-		minTimeSecs=$[$minTime*60]
-		if [ "$sourceType" = "Folder" ]; then
-			trackList=`"$makemkvconPath" -r --minlength=$minTimeSecs info file:"$sourcePath" | egrep 'TINFO\:.,9,0'`
-		elif [ "$sourceType" = "Optical" ]; then
-			trackList=`"$makemkvconPath" -r --minlength=$minTimeSecs info disc:$deviceNum | egrep 'TINFO\:.,9,0'`
-		fi
+		trackList=`eval "echo \"$allTrackText\""`
 		trackNumber=""
 		for aline in $trackList
 		do
 			trackNumber=`echo $aline | sed 's|TINFO:||' | sed 's|,.*||'`
-			set -- `echo $aline | grep '[0-9]:[0-9].:[0-9].' | sed -e 's|.*,\"||g' -e 's|"||g' -e 's/:/ /g'`
-			if [ $3 -gt 29 ];
+			set -- `echo $aline | sed -e 's|.*,||g' -e 's|"||g' -e 's/:/ /g'`
+			if [[ $((10#$3)) -gt 29 ]];
 				then let trackTime=(10#$1*60)+10#$2+1
 			else let trackTime=(10#$1*60)+10#$2
 			fi
@@ -644,16 +746,56 @@ getTrackListWithinDuration() # Gets the only the tracks with in the min/max dura
 			fi
 		done
 	fi
-
-	#if [[ "$aReturn" = "" && "$fileExt" = "mkv" ]]; then
-		#	get mkv info
-		#mkvInfoCmd="\"$mkvinfoPath\" \"$sourcePath\""
-		#mkvInfo=`eval $mkvInfoCmd`
-		#aReturn="1"
-	#fi
-	
-	# returns the final list of titles to be encoded
 	echo "$aReturn"
+}
+
+getTrackListAllTracks() # Creates a list of all tracks and duration
+{
+	allTrackText="$*"
+	#returnTitles=""
+	#getTrackList=""
+	#	parse track info for DVD and File input
+	#	returns a list of titles with their duration in minutes
+	if [[ "$sourceFormat" = "DVD" || "$sourceType" = "File" && ! "$fileExt" = "mkv" ]] ; then
+		getTrackList=`eval "echo \"$allTrackText\" | egrep '(^\+ title |\+ duration\:)' | sed -e 's/^[^+]*+ //'g -e 's/title \([0-9]*\):/\1-/'g -e 's/duration: //'g"`
+		trackNumber=""
+		for aline in $getTrackList
+		do
+			trackLineFlag=`echo $aline | sed 's/[0-9]*-$/-/'`
+			if [ $trackLineFlag = "-" ];
+				then
+				trackNumber=`echo $aline | sed 's/\([0-9]*\)-/\1/'`
+			else
+				set -- `echo $aline | sed -e 's/(^[:0-9])//g' -e 's/:/ /g'`
+				if [ $3 -gt 29 ];
+					then let trackTime=(10#$1*60)+10#$2+1
+				else let trackTime=(10#$1*60)+10#$2
+				fi
+
+				if [[ $trackTime -gt 1 ]]; then
+					returnTitles="$returnTitles - Track ${trackNumber} Duration: $trackTime min.|"
+				fi
+			fi
+		done
+	elif [[ "$sourceFormat" = "HD" ]]; then
+		#	parse track info for BD optical disc and folder input
+		#	gets a list of tracks added by makemkv
+		getTrackList=`eval "echo \"$allTrackText\""`
+		trackNumber=""
+		for aline in $getTrackList
+		do
+			trackNumber=`echo $aline | sed 's|TINFO:||' | sed 's|,.*||'`
+			set -- `echo $aline | sed -e 's|.*,||g' -e 's|"||g' -e 's/:/ /g'`
+			if [[ $((10#$3)) -gt 29 ]];
+				then let trackTime=(10#$1*60)+10#$2+1
+			else let trackTime=(10#$1*60)+10#$2
+			fi
+			if [[ $trackTime -gt 1 ]]; then
+				returnTitles="$returnTitles - Track ${trackNumber} Duration: $trackTime min.|"
+			fi
+		done
+	fi
+	echo "$returnTitles" | tr '|' '\n' | sed 's|^|   |g'
 }
 
 printTrackFetchList() # Prints the tracks to encode for each source
@@ -661,7 +803,38 @@ printTrackFetchList() # Prints the tracks to encode for each source
 	if [ ! -z "$1" ]; then
 		echo "  Will encode the following tracks: `echo $1 | sed 's/ /, /g'` "
 	else
-		echo "  No tracks found between the min/max duration settings"
+		trackInfoTest=$(cat "${outFile}_titleInfo.txt")
+		if [[ ! -z "$trackInfoTest" ]]; then
+			if [ "$videoKind" = "Movie" ]; 
+				then minTime="$minTrackTimeMovie" && maxTime="$maxTrackTimeMovie"
+				else minTime="$minTrackTimeTV" && maxTime="$maxTrackTimeTV"
+			fi
+			echo "  No tracks found between ${minTime}-${maxTime} minutes ($videoKind)."
+			getTrackListAllTracks "$trackInfo"
+		else
+			if [ "$sourceFormat" = "HD" ]; then
+				if [[ "$sourceType" = "Folder" || "$sourceType" = "File" && "$fileExt" = "mkv" || "$sourceType" = "Optical" ]]; then
+					# Check for MakeMKV Trial Expired & Failed Disc
+					if [ "$sourceType" = "Optical" ]; then
+						checkMakeMkvTrial=$("$makemkvconPath" --directio=false info disc:$deviceNum | egrep -i '(evaluation|failed)' | tr '\n' ' ')
+					else
+						checkMakeMkvTrial=$("$makemkvconPath" --directio=false info file:"$sourcePath" | egrep -i '(evaluation|failed)' | tr '\n' ' ')
+					fi
+					if [ ! -z "$checkMakeMkvTrial" ]; then
+						echo -e "  ERROR MakeMKV: \c"
+						echo "$checkMakeMkvTrial"
+					else
+						echo "  ERROR: No tracks found or failed to scan source."
+						echo "  Check source files and application settings in Automator."
+					fi
+				else
+					echo "  ERROR: No tracks found or failed to scan source."
+					echo "  Check source files and application settings in Automator."					
+				fi
+			fi
+		fi
+		# set color label of disc folder to red
+		setLabelColor "$folderPath" "2" > /dev/null
 	fi
 	echo ""
 }
@@ -683,13 +856,6 @@ isPIDRunning() # Checks on the status of background processes
 
 makeMKV() # Makes an mkv from an HD source. Extracts main audio, video, and subs.
 {
-	# verifies cli tool paths
-	makemkvconPath=`verifyFindCLTool "$makemkvconPath"`
-	mkvinfoPath=`verifyFindCLTool "$mkvinfoPath"`
-	mkvmergePath=`verifyFindCLTool "$mkvmergePath"`
-	mkvextractPath=`verifyFindCLTool "$mkvextractPath"`
-	bdSup2SubPath=`verifyFindCLTool "$bdSup2SubPath"`
-	
 	# sets the file path input for mkvtoolnix
 	if [ "$sourceType" = "File" ]; then
 		# for files, the tmp file is the source file
@@ -705,15 +871,18 @@ makeMKV() # Makes an mkv from an HD source. Extracts main audio, video, and subs
 	#	CREATE MKV FROM SOURCE FILE
 	#	uses makeMKV to create mkv file from selected track
 	#	makemkvcon includes all languages and subs, no way to exclude unwanted items
-	echo -en "${discName}-${aTrack}.mkv\nEncoded:" `date "+%l:%M %p"` "\c" >> $tmpFolder/growlMessageHD.txt &
+	createTmpMkv=0
+	echo -e "${discName}-${aTrack}.mkv" >> $tmpFolder/growlMessageHD.txt
 	if [[ "$sourceType" = "Folder" || "$sourceType" = "Optical" ]]; then
 		echo "*Creating MKV temp file of Track: ${aTrack}"
-		if [ ! -e "$tmpFile" ]; then
+		if [[ ! -e "$tmpFile" && ! -e "$outFile" ]]; then
+			createTmpMkv=1
+			echo -e "Encoded:" `date "+%l:%M %p"` "\c" >> $tmpFolder/growlMessageHD.txt
 			if [[ verboseLog -eq 0 ]]; then
 				if [ "$sourceType" = "Folder" ]; then
-					cmd="\"$makemkvconPath\" mkv --messages=-null --progress=${sourceTmpFolder}/${aTrack}-makemkv.txt file:\"$folderPath\" $aTrack \"$folderPath\""
+					cmd="\"$makemkvconPath\" mkv --noscan --directio=false --messages=-null --progress=${sourceTmpFolder}/${aTrack}-makemkv.txt file:\"$folderPath\" $aTrack \"$folderPath\""
 				elif [ "$sourceType" = "Optical" ]; then
-					cmd="\"$makemkvconPath\" mkv --messages=-null --progress=${sourceTmpFolder}/${aTrack}-makemkv.txt --decrypt disc:$deviceNum $aTrack \"$folderPath\""
+					cmd="\"$makemkvconPath\" mkv --messages=-null --progress=${sourceTmpFolder}/${aTrack}-makemkv.txt disc:$deviceNum $aTrack \"$folderPath\""
 				fi
 				eval $cmd &
 				cmdPID=$!
@@ -732,7 +901,7 @@ makeMKV() # Makes an mkv from an HD source. Extracts main audio, video, and subs
 				wait $cmdPID
 			elif [[ verboseLog -eq 1 ]]; then
 				if [ "$sourceType" = "Folder" ]; then
-					cmd="\"$makemkvconPath\" mkv --progress=-same file:\"$folderPath\" $aTrack \"$folderPath\""
+					cmd="\"$makemkvconPath\" mkv --noscan --directio=false --progress=-same file:\"$folderPath\" $aTrack \"$folderPath\""
 				elif [ "$sourceType" = "Optical" ]; then
 					cmd="\"$makemkvconPath\" mkv --progress=-same disc:$deviceNum $aTrack \"$folderPath\""
 				fi
@@ -877,6 +1046,9 @@ makeMKV() # Makes an mkv from an HD source. Extracts main audio, video, and subs
 		audioTrackCount=`echo "$mkvInfo" | sed 's|\| *||' | tr '\n' '|' | sed 's|\|+ A track|%|g' | tr '%' '\n' | sed -e 's|^\|+ ||' -e 's|\|+|,|g' | egrep -c ".*Track type: audio"`
 		if [[ "$audioTrackCount" -gt 1 || ! "$subFile" = "" ]]; then
 			echo -e "*Muxing Main Video, Audio (${audioCodec}-${trackLanguage}) and Subtitle Tracks from temp files"
+			if [[ $createTmpMkv -eq 0 ]]; then
+				echo -e "Encoded:" `date "+%l:%M %p"` "\c" >> $tmpFolder/growlMessageHD.txt
+			fi
 			if [[ verboseLog -eq 0 ]]; then
 				if [ -z "$subFile" ]; then
 					if [[ `echo "$mkvInfo" | grep "S_VOBSUB"` ]]; then
@@ -915,12 +1087,10 @@ makeMKV() # Makes an mkv from an HD source. Extracts main audio, video, and subs
 				fi
 				eval $cmd
 			fi
-			echo -e "-" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageHD.txt &
+			echo -e "-`date "+%l:%M %p"`\n" >> $tmpFolder/growlMessageHD.txt &
 		fi
 	else
-		echo -e "-" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageHD.txt &
-		echo -e "${discName}-${aTrack}.mkv\nSkipped because it already exists\n" >> $tmpFolder/growlMessageHD.txt &
-		echo "  Skipped because file already exists"
+		echo -e "Skipped because it already exists\n" >> $tmpFolder/growlMessageHD.txt
 	fi
 
 	#CHANGE $SOURCEPATH TO $OUTFILE
@@ -945,14 +1115,6 @@ processFiles() # Passes the source file and encode settings for each output file
 		fi
 		
 		if [ -e "$sourceFile" ]; then
-			if [[ encode_1080p -eq 1 && "$videoKind" = "TV Show" ]] ; then
-				processToolArgs "1080p" "$sourceFile"
-				encodeFile "$sourceFile" "${discName}-${aTrack}.${outFileExt}" "HD"
-			elif [[ encode_1080p -eq 1 && "$videoKind" = "Movie" ]] ; then
-				processToolArgs "1080p" "$sourceFile"
-				encodeFile "$sourceFile" "${discName}.${outFileExt}" "HD"
-			fi
-
 			if [[ encode_720p -eq 1 && "$videoKind" = "TV Show" ]] ; then
 				processToolArgs "720p" "$sourceFile"
 				encodeFile "$sourceFile" "${discName}-${aTrack}.${outFileExt}" "HD"
@@ -978,14 +1140,23 @@ processFiles() # Passes the source file and encode settings for each output file
 			processToolArgs "DVD" "$sourceFile"
 			encodeFile "$sourceFile" "${discName}.${outFileExt}" "DVD"
 		fi
+
+		if [[ encode_DVD2 -eq 1 && "$videoKind" = "TV Show" ]] ; then
+			processToolArgs "DVD2" "$sourceFile"
+			encodeFile "$sourceFile" "${discName}-${aTrack} 1.${outFileExt}" "DVD"
+		elif [[ encode_DVD2 -eq 1 && "$videoKind" = "Movie" ]] ; then
+			processToolArgs "DVD2" "$sourceFile"
+			encodeFile "$sourceFile" "${discName} 1.${outFileExt}" "DVD"
+		fi
 	fi
 }
 
 processToolArgs() # Sets HandBrake encode settings based on input/output type
 {
+	# strategic echo to add space
+	echo ""
 	encodeType="$1"
 	inputFile="$2"
-	handBrakeCliPath=`verifyFindCLTool "$handBrakeCliPath"`
 	scanFileCmd="\"$handBrakeCliPath\" -i \"$inputFile\" -t $aTrack --scan /dev/null 2>&1"
 	scanFile=`eval $scanFileCmd`
 	audioInfo=`echo "$scanFile" | egrep "\+ [0-9],.*$nativeLanguage.*Hz" | egrep '(DTS|AC3)' | grep "5.1" | egrep -m1 "" | sed 's|^.*\+ ||'`
@@ -1014,26 +1185,51 @@ processToolArgs() # Sets HandBrake encode settings based on input/output type
 	
 	if [[ "$encodeType" = "DVD" && useCustomDvdArgs -eq 1 ]]; then 
 		encodeFormat="Custom/${encodeType}"
-	elif [[ "$encodeType" = "1080p" && useCustom1080pArgs -eq 1 ]]; then 
+	elif [[ "$encodeType" = "DVD2" && useCustomDvd2Args -eq 1 ]]; then 
 		encodeFormat="Custom/${encodeType}"
 	elif [[ "$encodeType" = "720p" && useCustom720pArgs -eq 1 ]]; then 
 		encodeFormat="Custom/${encodeType}"
 	elif [[ "$encodeType" = "SD" && useCustomSdArgs -eq 1 ]]; then 
 		encodeFormat="Custom/${encodeType}"
+	elif [[ "$encodeType" = "DVD" && useCustomDvdArgs -eq 0 ]]; then 
+		encodeFormat="${presetDvd}/${encodeType}"
+		devicePreset="$presetDvd"
+	elif [[ "$encodeType" = "DVD2" && useCustomDvd2Args -eq 0 ]]; then 
+		encodeFormat="${presetDvd2}/${encodeType}"
+		devicePreset="$presetDvd2"
+	elif [[ "$encodeType" = "720p" && useCustom720pArgs -eq 0 ]]; then 
+		encodeFormat="${preset720p}/${encodeType}"
+		devicePreset="$preset720p"
+	elif [[ "$encodeType" = "SD" && useCustomSdArgs -eq 0 ]]; then 
+		encodeFormat="${presetSd}/${encodeType}"
+		devicePreset="$presetSd"
 	else 
-		encodeFormat="${audioCodec}/${encodeType}"
+		encodeFormat="Universal/${encodeType}"
+		devicePreset="Universal"
 	fi
 	
+	case $devicePreset in
+		( "Universal" )		hbPreset="Universal";;
+		( "iPod" )			hbPreset="iPod";;
+		( "iPod Touch" )	hbPreset="iPhone & iPod Touch";;
+		( "iPhone" )		hbPreset="iPhone & iPod Touch";;
+		( "iPhone 4" )		hbPreset="iPhone 4";;
+		( "iPad" )			hbPreset="iPad";;
+		( "AppleTV" )		hbPreset="AppleTV";;
+		( "AppleTV 2" )		hbPreset="AppleTV 2";;
+		( "High Profile" )	hbPreset="High Profile";;
+		( * )				hbPreset="Universal";;
+	esac
+	
 	case $encodeFormat in
-		( DTS/1080p | AC3/1080p | AAC/1080p | UNKNOWN/1080p )	toolArgs="-e x264 -q 21.0 -a ${audioTrack},${audioTrack} -E ca_aac,copy:ac3 -B 160,160 -6 dpl2,auto -R Auto,Auto -D 0.0,0.0 -f mp4 -4 --width 1920 --maxHeight 1080 --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage -m -x b-adapt=2:rc-lookahead=50";;
-		( DTS/720p | AC3/720p | AAC/720p | UNKNOWN/720p )		toolArgs="-e x264 -q 21.0 -a ${audioTrack},${audioTrack} -E ca_aac,copy:ac3 -B 160,160 -6 dpl2,auto -R Auto,Auto -D 0.0,0.0 -f mp4 -4 --width 1280 --maxHeight 720 --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage -m -x b-adapt=2:rc-lookahead=50";;
-		( DTS/SD | AC3/SD | AAC/SD | UNKNOWN/SD )				toolArgs="-e x264 -q 21.0 -a ${audioTrack},${audioTrack} -E ca_aac,copy:ac3 -B 160,160 -6 dpl2,auto -R Auto,Auto -D 0.0,0.0 -f mp4 -X 480 --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage -m -x b-adapt=2:rc-lookahead=50";;
-		( DTS/DVD | AC3/DVD | AAC/DVD | UNKNOWN/DVD )			toolArgs="-e x264 -q 20.0 -a ${audioTrack},${audioTrack} -E ca_aac,copy:ac3 -B 160,160 -6 dpl2,auto -R Auto,Auto -D 0.0,0.0 -f mp4 -4 --loose-anamorphic --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage --decomb --detelecine -m -x b-adapt=2:rc-lookahead=50";;
-		( Custom/1080p )	toolArgs=$(echo "$custom1080pArgs" | sed -e "s|\${audioTrack}|$audioTrack|g" -e "s|\$nativeLanguage|$nativeLanguage|g");;
+		( "$preset720p/720p" )	toolArgs=`"$handBrakeCliPath" -z | egrep -vi "legacy" | egrep -i "$hbPreset" | egrep -m1 "" | sed -e 's|^.*:.*-e|-e|' -e "s|-a 1|-a ${audioTrack}|g" -e "s|-a ${audioTrack},1|-a ${audioTrack},${audioTrack}|g" -e 's|faac|ca_aac|g' -e 's|-X 1280|--width 1280 --maxHeight 720|g' -e 's|-X 960|--width 1280 --maxHeight 720|g' -e 's| --loose-anamorphic||g' -e "s| -m| & --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage|g"`;;
+		( "$presetSd/SD" )		toolArgs=`"$handBrakeCliPath" -z | egrep -vi "legacy" | egrep -i "$hbPreset" | egrep -m1 "" | sed -e 's|^.*:.*-e|-e|' -e "s|-a 1|-a ${audioTrack}|g" -e "s|-a ${audioTrack},1|-a ${audioTrack},${audioTrack}|g" -e 's|faac|ca_aac|g' -e "s| -m| & --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage|g"`;;
+		( "$presetDvd/DVD" | "$presetDvd2/DVD2" )		toolArgs=`"$handBrakeCliPath" -z | egrep -vi "legacy" | egrep -i "$hbPreset" | egrep -m1 "" | sed -e 's|^.*:.*-e|-e|' -e "s|-a 1|-a ${audioTrack}|g" -e "s|-a ${audioTrack},1|-a ${audioTrack},${audioTrack}|g" -e 's|faac|ca_aac|g' -e "s| -m| & --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage|g"`;;
+		( Custom/DVD2 )		toolArgs=$(echo "$customDvd2Args" | sed -e "s|\${audioTrack}|$audioTrack|g" -e "s|\$nativeLanguage|$nativeLanguage|g");;
 		( Custom/720p )		toolArgs=$(echo "$custom720pArgs" | sed -e "s|\${audioTrack}|$audioTrack|g" -e "s|\$nativeLanguage|$nativeLanguage|g");;
 		( Custom/SD )		toolArgs=$(echo "$customSdArgs" | sed -e "s|\${audioTrack}|$audioTrack|g" -e "s|\$nativeLanguage|$nativeLanguage|g");;
 		( Custom/DVD )		toolArgs=$(echo "$customDvdArgs" | sed -e "s|\${audioTrack}|$audioTrack|g" -e "s|\$nativeLanguage|$nativeLanguage|g");;
-		( * )				toolArgs="-e x264 -q 20.0 -a ${audioTrack},${audioTrack} -E ca_aac,copy:ac3 -B 160,160 -6 dpl2,auto -R Auto,Auto -D 0.0,0.0 -f mp4 -4 --loose-anamorphic --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage --decomb --detelecine -m -x b-adapt=2:rc-lookahead=50";;
+		( * )				toolArgs=`"$handBrakeCliPath" -z | egrep -vi "legacy" | egrep -i "$hbPreset" | sed -e 's|^.*:.*-e|-e|' -e "s|-a 1|-a ${audioTrack}|g" -e "s|-a ${audioTrack},1|-a ${audioTrack},${audioTrack}|g" -e 's|faac|ca_aac|g' -e "s| -m|& --subtitle scan --subtitle-burn --subtitle-forced scan --native-language $nativeLanguage|g"`;;
 	esac
 	
 	if echo "$toolArgs" | egrep -i 'mp4' > /dev/null; then
@@ -1055,7 +1251,6 @@ encodeFile() # Encodes source with HandBrake and sends output files for further 
 {
 	inputPath="$1"
 	movieFile="$2"
-	handBrakeCliPath=`verifyFindCLTool "$handBrakeCliPath"`
 	
 	if [[ ! -e  "$outputDir/$movieFile" || skipDuplicates -eq 0 ]] ; then
 		echo -e "\n*Creating $movieFile"
@@ -1092,31 +1287,84 @@ encodeFile() # Encodes source with HandBrake and sends output files for further 
 		echo ""
 		echo -e "-" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageHD.txt &
 
-		# optionally tag files, move existing file in archive and set Finder comments
-		if [ -e  "$outputDir/$movieFile" ] ; then
-			# if file is a movie and movie already exists in archive, move existing file to retired folder
-			if [[ ! "$videoKind" = "TV Show" && retireExistingFile -eq 1 ]]; then
-				retireExistingFile
-			fi
+		# test output file integrity
+		testOutputFile=$(testFileIntegrity "$outputDir/$movieFile")
+		if [[ ! $testOutputFile -eq 1 ]]; then
+			# optionally tag files, move existing file in archive and set Finder comments
 			# adds iTunes style tags to mp4 files
 			if echo "$movieFile" | grep -v "mkv" > /dev/null; then
 				addMetaTags "$3"
 				if [[ ! "$videoKind" = "TV Show" && "$addiTunesTags" -eq 1 ]]; then
 					addiTunesTagsMovie
+					addChapterNamesMovie
 				fi
-			fi
-			
-			# set spotlight finder comment of m4v file to "videoKind" for hazel or another script
-			setFinderComment "$outputDir/$movieFile" "$videoKind"
+				# test output file integrity
+				testOutputFile=$(testFileIntegrity "$outputDir/$movieFile")
+				if [[ $testOutputFile -eq 1 ]]; then
+					echo -e "\n* ERROR: $movieFile FAILED file integrity test!"
+					echo -e "  Encode may have failed or File may be corrupt :( \n"
+					# set color label of movie file to red
+					setLabelColor "$outputDir/$movieFile" "2" &
+					# set color label of disc folder to red
+					setLabelColor "$folderPath" "2" &
+				fi
+			fi			
+
+			if [[ ! $testOutputFile -eq 1 ]]; then
+				# set spotlight finder comment of m4v file to "videoKind" for hazel or another script
+				setFinderComment "$outputDir/$movieFile" "$videoKind"
+				# set color label of movie file to green
+				currentLabelColor=$(getLabelColor "$outputDir/$movieFile")
+				if [[ ! $currentLabelColor -eq 1 ]]; then
+					setLabelColor "$outputDir/$movieFile" "6" &
+				fi
+				# if file is a movie and movie already exists in archive, move existing file to retired folder
+				if [[ ! "$videoKind" = "TV Show" && retireExistingFile -eq 1 ]]; then
+					retireExistingFile
+				fi
+			fi						
 		else
-			echo "  Script could not complete because $movieFile does NOT exist"
+			echo -e "\n* ERROR: $movieFile FAILED file integrity test!"
+			echo -e "  Encode may have failed or File may be corrupt :( \n"
+			if [[ ! -e "$outputDir/$movieFile" ]]; then
+				echo -n "  Script could not complete because $movieFile does NOT exist \n"
+			else
+				# set color label of movie file to red
+				setLabelColor "$outputDir/$movieFile" "2" &
+				# set color label of disc folder to red
+				setLabelColor "$folderPath" "2" &
+			fi
 		fi
-		
 	else
 		echo -e "$movieFile\nSkipped because it already exists\n" >> $tmpFolder/growlMessageHD.txt &
 		echo -e "\n  $movieFile SKIPPED because it ALREADY EXISTS"
 	fi
 	echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+}
+
+testFileIntegrity() # Validates mp4 and mkv output
+{
+	thisFile="$1"
+	thisFileName=`basename "$thisFile"`
+	testResult=""
+	if echo "$thisFileName" | grep -v "mkv" > /dev/null; then
+		#echo "*Testing ${thisFileName} to see if its a valid MPEG-4 file"
+		testMp4File=$("$atomicParsley64Path" "$thisFile" -T)
+		if [ ! -z "$testMp4File" ]; then
+			testResult=0
+		else
+			testResult=1
+		fi
+	else
+		#echo "*Testing ${thisFileName} to see if its a valid MKV file"
+		testMkvFile=$("$mkvinfoPath" "$thisFile" -T)
+		if [ ! -z "$testMkvFile" ]; then
+			testResult=0
+		else
+			testResult=1
+		fi
+	fi	
+	echo "$testResult"
 }
 
 retireExistingFile() # If the file already exists in movie library, move existing file to retired folder
@@ -1141,7 +1389,6 @@ addMetaTags() # Adds HD Flag, cnid num and videoKind for iTunes
 {
 	HDSD="$1"
 	cnIDnum=$( tail -1 "$cnidFile" )
-	mp4tagsPath=`verifyFindCLTool "$mp4tagsPath"`
 	echo -e "\n*Adding Meta Tags to $movieFile"
 	# write mp4 tags to files. videoKind: -i 9=movie, 10=tv show. cnid: -I <num>. HD Flag: -H 1.
 	if [[ $HDSD = HD && ! "$videoKind" = "TV Show" ]]; then
@@ -1152,9 +1399,9 @@ addMetaTags() # Adds HD Flag, cnid num and videoKind for iTunes
 		"$mp4tagsPath" -H 1 -I $cnIDnum -i 10 "$outputDir/$movieFile"
 	elif [[ $HDSD = SD && "$videoKind" = "TV Show" ]]; then
 		"$mp4tagsPath" -I $cnIDnum -i 10 "$outputDir/$movieFile"
-	elif [[ "$discType" = "DVD" && "$videoKind" = "TV Show" ]]; then
+	elif [[ $HDSD = DVD && "$videoKind" = "TV Show" ]]; then
 		"$mp4tagsPath" -i 10 "$outputDir/$movieFile"
-	elif [[ "$discType" = "DVD" && ! "$videoKind" = "TV Show" ]]; then
+	elif [[ $HDSD = DVD && ! "$videoKind" = "TV Show" ]]; then
 		"$mp4tagsPath" -i 9 "$outputDir/$movieFile"
 	fi
 }
@@ -1164,16 +1411,19 @@ setFinderComment() # Sets Spotlight Comment of the output file to TV Show or Mov
 	osascript -e "try" -e "set theFile to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to set comment of theFile to \"$2\"" -e "tell application \"Finder\" to update theFile" -e "end try" > /dev/null
 }
 
-setFolderColor() # Sets the source folder color to green
+setLabelColor() # Sets the file or folder color
 {
-	osascript -e "try" -e "set theFolder to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to set label index of theFolder to 6" -e "end try" > /dev/null
+	osascript -e "try" -e "set theFolder to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to set label index of theFolder to $2" -e "end try" > /dev/null
+}
+
+getLabelColor() # Gets the current file or folder color
+{
+	osascript -e "try" -e "set theItem to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to return label index of theItem" -e "end try"	
 }
 
 addiTunesTagsMovie() # Adds iTunes style metadata to m4v files using theMovieDB.org api
 {
 # variables	
-xpathPath=`verifyFindCLTool "$xpathPath"`
-atomicParsley64Path=`verifyFindCLTool "$atomicParsley64Path"`
 #discNameNoYear=`echo "$discName" | sed -e 's|\ (.*||g' -e 's|\ \-\ |:\ |g' -e 's|\&|\&amp;|g'`
 discNameNoYear=`echo "$discName" | sed -e 's|\ (.*||g' -e 's|\ \-\ |:\ |g'`
 # set TMDb searchTerm
@@ -1222,7 +1472,7 @@ if [ ! -e "${sourceTmpFolder}/${searchTermNoColin}_tmp.xml" ]; then
 fi
 
 # set metadata variables and write tags to file
-if grep "<name>" "$movieSearchXml" > /dev/null ; then
+if grep "<name>" "$movieSearchXml" > /dev/null 2>&1 ; then
 	movieData="$movieSearchXml"
 	substituteISO88591 "$(cat "$movieData")" > "$movieData"	
 	movieTitle=`"$xpathPath" "$movieData" //name 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's|: | - |g' -e "s|&apos;|\'|g" -e 's|\&amp;|\&|g'`
@@ -1235,6 +1485,7 @@ if grep "<name>" "$movieSearchXml" > /dev/null ; then
 	releaseDate=`"$xpathPath" "$movieData" //released 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 	movieDesc=`"$xpathPath" "$movieData" //overview 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 	genreList=`"$xpathPath" "$movieData" "//category[@type='genre']/@name" 2>/dev/null | sed 's| name="||g' | tr '\"' '\n' | sed -e '/./!d' -e 's|^|<string>|g' -e 's|^|<dict><key>name</key>|g' -e 's|$|</string></dict>|g'`
+	contentRating=`"$xpathPath" "$movieData" //certification 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 	purchaseDate=`date "+%Y-%m-%d %H:%M:%S"`
 	releaseYear=`echo "$releaseDate" | sed 's|-.*||g'`
 
@@ -1291,15 +1542,141 @@ if grep "<name>" "$movieSearchXml" > /dev/null ; then
 	# write tags with atomic parsley
 	echo -e "\n*Writing tags with AtomicParsley\c"
 	if [[ -e "$moviePoster" && "$imgIntegrityTest" -gt 100 ]]; then
-		"$atomicParsley64Path" "$outputDir/$movieFile" --overWrite --title "$discName" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --artwork "$moviePoster" --genre "$movieGenre" --description "$movieDesc" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+		"$atomicParsley64Path" "$outputDir/$movieFile" --overWrite --title "$discName" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --artwork "$moviePoster" --genre "$movieGenre" --description "$movieDesc" --longDescription "$movieDesc" --contentRating "$contentRating" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
 	else
-		"$atomicParsley64Path" "$outputDir/$movieFile" --overWrite --title "$discName" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --genre "$movieGenre" --description "$movieDesc" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
-		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add Movie Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
+		"$atomicParsley64Path" "$outputDir/$movieFile" --overWrite --title "$discName" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --genre "$movieGenre" --description "$movieDesc" --longDescription "$movieDesc" --contentRating "$contentRating" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+		echo -e "\n  ERROR: Cover art failed integrity test... No artwork was added"
+		# set color label of movie file to orange
+		setLabelColor "$outputDir/$movieFile" "1" &
+		# set color label of disc folder to orange
+		setLabelColor "$folderPath" "1" &
 	fi
 else
 	echo "Could not find a match"
+	# set color label of movie file to orange
+	setLabelColor "$outputDir/$movieFile" "1" &
+	# set color label of disc folder to orange
+	setLabelColor "$folderPath" "1" &
 fi
 
+}
+
+addChapterNamesMovie () # Adds chapter names to m4v files using the tagchimp api
+{
+	tagChimpToken=1803782295499EE85E56181
+	discNameNoYear=`echo "$discName" | sed -e 's|\ (.*||g' -e 's|\ \-\ |:\ |g'`
+	searchTerm=`echo "$discNameNoYear" | sed -e 's|\ |+|g' -e "s|\'|%27|g"`
+	searchTermNoColin=`echo $searchTerm | sed 's|:||g'`
+	movieYear=`echo "$discName" | awk -F\( '{print $2}' | awk -F\) '{print $1}'`
+	echo -e "\n*Adding Chapter Names to $movieFile"
+	chapterFile="${outputDir}/${discName}.chapters.txt"
+	#	Copy chapter file if it's a second encode
+	if [[ "$movieFile" = "${discName} 1.m4v" && -e "$chapterFile" ]]; then
+		cp "$chapterFile" "${outputDir}/${discName} 1.chapters.txt"
+		chapterFile="${outputDir}/${discName} 1.chapters.txt"
+	elif [[ "$movieFile" = "${discName} 1.m4v" && ! -e "$chapterFile" ]]; then
+		chapterFile="${outputDir}/${discName} 1.chapters.txt"
+	fi
+	if [ ! -e "$chapterFile" ]; then
+		echo -e "  Searching TagChimp for chapter names... \c"
+	#	Get chaps from m4v
+		"$mp4chapsPath" -qxC "$outputDir/$movieFile"
+		if [ -e "$chapterFile" ]; then
+		#	Get count of chaps
+			chapterCount=$(grep -cv "NAME" "$chapterFile")
+		#	Search tagchimp
+			tagChimpIdXml="${sourceTmpFolder}/${searchTermNoColin}-chimp.xml"
+			tagChimpXml="${sourceTmpFolder}/${searchTermNoColin}-info-chimp.xml"
+			curl -s "https://www.tagchimp.com/ape/search.php?token=$tagChimpToken&type=search&title=$searchTerm&videoKind=Movie&limit=5&totalChapters=$chapterCount" > "$tagChimpIdXml"
+			searchTagChimp=`"$xpathPath" "$tagChimpIdXml" //tagChimpID 2>/dev/null | sed -e 's|\/tagChimpID>|\||g'| tr '|' '\n' | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
+			# test chapters for each id
+			for tagChimpID in $searchTagChimp
+			do
+				# download each id to tmp.xml
+				tagChimpData="${sourceTmpFolder}/${tagChimpID}-chimp.xml"
+				if [ ! -e "$tagChimpData" ]; then		
+					curl -s "https://www.tagchimp.com/ape/search.php?token=$tagChimpToken&type=lookup&id=$tagChimpID" | iconv -f utf-8 -t ASCII//TRANSLIT > $tagChimpData
+					substituteISO88591 "$(cat "$tagChimpData")" > "$tagChimpData"
+				fi
+				# 	Disc Name with wildcard for colins and ampersands
+				discNameNoYearWildcard=`echo "$discNameNoYear" | sed -e 's|:|.*|g' -e 's|\&|.*|g'`
+				# 	Test id for release year
+				releaseDate=`"$xpathPath" "$tagChimpData" //releaseDate 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | grep "$movieYear"`
+				# 	Test id for title
+				movieTitle=`"$xpathPath" "$tagChimpData" //movieTitle 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e "s|&apos;|\'|g" -e 's| $||' | egrep -ix "$discNameNoYearWildcard"`
+				#	Test id for chap count
+				titleCount=`"$xpathPath" "$tagChimpData" //chapterTitle 2>/dev/null | sed -e 's|><|>\|<|g' -e 's|<chapterTitle>||g' -e 's|</chapterTitle>||g' | tr '|' '\n' | grep -c ""`
+				#	Test chapter titles for uniqueness
+				chapterTest=`"$xpathPath" "$tagChimpData" //chapterTitle 2>/dev/null | sed -e 's|><|>\|<|g' -e 's|<chapterTitle>||g' -e 's|</chapterTitle>||g' | tr '|' '\n' | sed '3q;d' | grep "3"`
+				# 	verify data match, delete if not a match
+				if [[ ! "$releaseDate" = "" && ! "$movieTitle" = "" && -z "$chapterTest" ]]; then
+					if [ "$titleCount" = "$chapterCount" ]; then
+						echo -e "Chapters found\n"
+						mv "$tagChimpData" "$tagChimpXml"
+						break 1
+					else
+						titleCountMin=$((titleCount - 1))
+						titleCountMax=$((titleCount + 1))
+						if [[ $titleCount -gt $titleCountMin && $titleCount -lt $titleCountMax ]]; then
+							if [ ! -e "$tagChimpXml" ]; then
+								notExactMatch="${sourceTmpFolder}/${searchTermNoColin}-notExact-chimp.xml"
+								mv "$tagChimpData" "$notExactMatch"
+							fi
+						fi
+					fi	
+				fi	
+			done
+	
+			# if could not find exact match, fallback to notExactMatch
+			if [ ! -e "$tagChimpXml" ]; then
+				if [ -e "$notExactMatch" ]; then
+					echo -e "Chapters found (not exact match)\n"
+					mv "$notExactMatch" "$tagChimpXml"
+				else
+					echo " " > "$tagChimpXml"
+				fi
+			fi
+
+			#	Get chapter titles
+			if grep "<movieTitle>" "$tagChimpXml" 2> /dev/null ; then
+				titleFile="${sourceTmpFolder}/${searchTermNoColin}_titles.txt"
+				# Save just titles to file
+				"$xpathPath" "$tagChimpXml" //chapterTitle 2>/dev/null | sed -e 's|><|>\|<|g' -e 's|"||g' -e 's|<chapterTitle>||g' -e 's|</chapterTitle>||g' -e 's|&amp;amp;|\&|g' | tr '|' '\n' > "$titleFile"		
+				# Create a csv file for later use with hb; save to source folder
+				cat "$titleFile" | grep -n "" | sed -e 's|,|\\,|g' -e 's|:|, |' > "${outFile}.chapters.csv"		
+				chapterNameLine=$(grep "NAME" "$chapterFile" | tr ' ' '\007')
+				chapterMarkers=$(grep -v "NAME" "$chapterFile")
+				chaptersWithTitlesTmp="${sourceTmpFolder}/${discName}_tmp.chapters.txt"
+				chapterNum=0
+				for eachChapter in $chapterNameLine
+				do
+					chapterNum=$(($chapterNum + 1))
+					eachChapter=$(echo "$eachChapter" | tr '\007' ' ')
+					eachMarker=$(echo "$chapterMarkers" | sed "${chapterNum}q;d")
+					eachTitle=$(sed "${chapterNum}q;d" "$titleFile")
+					#	Replace chapterFile name with titleFile name
+					echo "$eachMarker"  >> "$chaptersWithTitlesTmp"
+					echo "$eachChapter" | sed -e "s|=.*|=$eachTitle|g"  >> "$chaptersWithTitlesTmp"
+				done
+				if [ -e "$chaptersWithTitlesTmp" ]; then
+					cat "$chaptersWithTitlesTmp" > "$chapterFile"
+				fi
+			else
+				echo "  Could not find a match"
+				rm -f "$chapterFile"
+				# set color label of movie file to orange
+				setLabelColor "$outputDir/$movieFile" "1" &
+			fi
+		else
+			# set color label of movie file to orange
+			setLabelColor "$outputDir/$movieFile" "1" &
+		fi
+	fi
+	#	Add chaps to m4v
+	if [[ -e "${outputDir}/${movieFile}" && -e "$chapterFile" ]]; then
+		"$mp4chapsPath" -i "${outputDir}/${movieFile}"
+		echo ""
+	fi
 }
 
 resizeImage () # Resizes large cover art to max 600px
@@ -1340,13 +1717,21 @@ windowID=$(osascript -e 'try' -e 'tell application "Terminal" to set Window_Id t
 osascript -e 'try' -e "tell application \"Terminal\" to set current settings of window id $windowID to settings set named \"Pro\"" -e 'end try'
 
 # process args passed from main.command
-parseVariablesInArgs $*
+parseVariablesInArgs $1
+if [[ verboseLog -eq 1 ]]; then
+	echo -e "\nProcessing Args passed from Batch Encode (Service).workflow\n$*\n"
+fi
 
 #makeFoldersForMe
 sanityCheck
 
-# find all the BD/DVD videos in the input search directory tree
-searchForFilesAndFolders
+if [ ! -z "$2" ]; then
+	# parse all the source files passed from Automator input
+	parseSourceFromInput "$2"
+else
+	# find all the BD/DVD videos in the input search directory tree
+	searchForFilesAndFolders
+fi
 
 # create tmp folder for script
 tmpFolder="/tmp/batchEncode_$scriptPID"
@@ -1355,6 +1740,7 @@ if [ ! -e "$tmpFolder" ]; then
 fi
 
 # display the basic setup information
+displaySetupInfo
 echo -e "\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 echo -e "$scriptName v$scriptVers\n"
 echo "  Start: `date`"
@@ -1363,6 +1749,7 @@ echo "  Input directory 2: $tvSearchDir"
 echo "  Output directory: $outputDir"
 echo "  Use optical Drive: $opticalStatus"
 echo "  Encode HD Sources: $encodeHdStatus"
+echo "  Keep MKV Temp Files: $keepMkvTempFileStatus"
 echo "  Auto-add movie tags: $addTagsStatus"
 echo "  Retire Existing File: $retireExistingFileStatus"
 echo "  Growl me when complete: $growlMeStatus"
@@ -1401,15 +1788,30 @@ do
 	# display: start of processing video
 	echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 	echo -e "PROCESSING: $discName \n"
-
+	
 	# display: start of scan
 	echo "*Scanning $sourceType: '$discName'"
 
+	# check disk space
+	checkDiskSpace "$sourcePath" "$outputDir"
+	if [[ $? -eq 1 ]]; then
+		echo "  WARNING: There is not enough free space on destination volume."
+		echo "  Will try to continue with next video…"
+		echo -e "$discName\nSkipped because hard drive is full.\n" >> "${tmpFolder}/growlMessageHD.txt"
+		setLabelColor "$folderPath" "2" &
+		continue
+	fi
+	
 	# sets the variables and scan commands based on source type
 	trackFetchListSetup "${sourcePath}/${discName}"
 	
 	# counts the number of tracks in the trackFetchList
 	trackCount=`echo $trackFetchList | wc -w`
+
+	if [[ $verboseLog -eq 1 ]]; then
+		cat "${outFile}_titleInfo.txt"
+		echo ""
+	fi
 
 	# display the track numbers of tracks which are within the time desired
 	printTrackFetchList "$trackFetchList"
@@ -1418,19 +1820,27 @@ do
 	for aTrack in $trackFetchList
 	do
 		# makes an mkv file from the HD source
-		if [[ "$sourceFormat" = "HD" && "$sourceType" = "Folder" || "$sourceFormat" = "HD" && "$sourceType" = "File" && "$fileExt" = "mkv" || "$sourceFormat" = "HD" && "$sourceType" = "Optical" ]]; then
-			makeMKV "$nativeLanguage"
+		if [ "$sourceFormat" = "HD" ]; then
+			if [[ "$sourceType" = "Folder" || "$sourceType" = "File" && "$fileExt" = "mkv" || "$sourceType" = "Optical" ]]; then
+				makeMKV "$nativeLanguage"
+			fi
 		fi
 		
-		# cnID Counter
-		if [ ! -e "$cnidFile" ]; then
-			echo "000001000" > "$cnidFile"
-		fi
-		#nextcnID=$(printf "\n%09d" $( expr `tail -1 "$cnidFile"` + 1 ) >> "$cnidFile")
-		nextcnID=$(printf "\n%09d" $( expr `echo $((RANDOM%999999999+3000))` ))
-		#echo $((RANDOM%999999999+3000))
+		# cnID - Generate Random Number
+		nextcnID=$(echo $(( 10000+($RANDOM)%(20000-10000+1) ))$(( 1000+($RANDOM)%(9999-1000+1) )) >> "$cnidFile")
+
 		# evaluates the input/output variables, selects the output setting and encodes with HandBrake
 		processFiles "$sourcePath"
+
+		# moves chapter files to source folder
+		if [ -e "${outputDir}/${discName}.chapters.txt" ]; then
+			mv "${outputDir}/${discName}.chapters.txt" "${outFile}.chapters.txt"
+		fi
+		if [[ -e "${outputDir}/${discName} 1.chapters.txt" && ! -e "${outFile}.chapters.txt" ]]; then
+			mv "${outputDir}/${discName} 1.chapters.txt" "${outFile}.chapters.txt"
+		else
+			rm -f "${outputDir}/${discName} 1.chapters.txt"
+		fi
 
 		# moves the final mkv files to the output folder
 		if [[ -e "${folderPath}/${discName}-${aTrack}.mkv" && ! -e "${outputDir}/${discName}-${aTrack}.mkv" && "$videoKind" = "TV Show" ]]; then
@@ -1443,8 +1853,14 @@ do
 
 	done
 
-	# set color label of disc folder
-	setFolderColor "$folderPath" &
+	# set color label of disc folder to gray
+	currentLabelColor=$(getLabelColor "$folderPath")
+	if [[ ! $currentLabelColor -eq 2 ]]; then
+		setLabelColor "$folderPath" "7" &
+	else
+		echo -e "* ERROR: $discName FAILED during processing!\n"
+		echo -e "$discName FAILED during processing\n" >> "${tmpFolder}/growlMessageHD.txt" && sleep 2
+	fi
 
 	echo -e "\nPROCESSING COMPLETE: $discName"
 	echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
@@ -1456,7 +1872,7 @@ do
 
 done
 
-echo "-- End summary for $scriptName" >> "${tmpFolder}/growlMessageHD.txt" && sleep 2
+echo "-- End summary for $scriptName" >> "${tmpFolder}/growlMessageHD.txt"
 
 ########  GROWL NOTIFICATION  ########
 if [[ growlMe -eq 1 ]]; then
@@ -1466,23 +1882,23 @@ if [[ growlMe -eq 1 ]]; then
 	"$growlNotifyPath" "Batch Encode" -m "$growlMessage" && sleep 5
 fi
 
-echo "  End: `date`"
+echo -e "  End: $(date)\n"
 
 # delete script temp files
 if [ -e "$tmpFolder" ]; then
-	rm -rf $tmpFolder
+	rm -rfd $tmpFolder
 fi
 
 # delete bash script tmp file
-if [ -e /tmp/batchEncodeTmp.sh ]; then
-	rm -f /tmp/batchEncodeTmp.sh
+if [ -e "$scriptTmpPath" ]; then
+	rm -f "$scriptTmpPath"
 fi
 
 # save terminal session log
-theLog=`get_log`
-if [ ! -z "$theLog" ]; then
+#theLog=`get_log`
+#if [ ! -z "$theLog" ]; then
 	test -d "$HOME/Library/Logs/BatchRipActions" || mkdir "$HOME/Library/Logs/BatchRipActions"
-	echo "$theLog" > "$HOME/Library/Logs/BatchRipActions/BatchEncode.log"
-fi
+	get_log > "$HOME/Library/Logs/BatchRipActions/BatchEncode.log"
+#fi
 
 exit 0

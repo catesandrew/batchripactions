@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -25,7 +25,7 @@
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0.4</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict>
 					<key>hbPath</key>
@@ -72,7 +72,7 @@
 				<key>BundleIdentifier</key>
 				<string>com.batchRip.Automator.Get_Source_Info_from_HandBrake</string>
 				<key>CFBundleVersion</key>
-				<string>1.0.4</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -84,13 +84,13 @@
 				<key>Class Name</key>
 				<string>AMShellScriptAction</string>
 				<key>InputUUID</key>
-				<string>39BF9BCA-5F41-4CA5-A376-3B77850136F2</string>
+				<string>D6E7B9B3-83B6-4A13-B340-45064DD03294</string>
 				<key>Keywords</key>
 				<array/>
 				<key>OutputUUID</key>
-				<string>DFEDA89D-45B4-40B2-9B0E-FF2A57A06702</string>
+				<string>8ADB4093-4817-4616-98B4-1278F01611C7</string>
 				<key>UUID</key>
-				<string>8E4D1E9E-D692-47A6-944E-197FB5F4B415</string>
+				<string>EF6B4A99-2172-4D7B-B4C4-C4F58326BE5F</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>HandBrakeCLI</string>
@@ -127,7 +127,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>319.500000:500.000000</string>
+				<string>362.000000:628.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Get Source Info from HandBrake.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -140,27 +140,27 @@
 	<key>state</key>
 	<dict>
 		<key>AMLogTabViewSelectedIndex</key>
-		<integer>1</integer>
+		<integer>0</integer>
 		<key>libraryState</key>
 		<dict>
 			<key>actionsMajorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>178</real>
+				<real>183</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 411.000000, 474.000000, NO</string>
-					<string>0.000000, 475.000000, 411.000000, 232.000000, NO</string>
+					<string>0.000000, 0.000000, 381.000000, 657.000000, NO</string>
+					<string>0.000000, 657.000000, 381.000000, 0.000000, YES</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>298</real>
+				<real>0.0</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 176.000000, 474.000000, NO</string>
-					<string>177.000000, 0.000000, 234.000000, 474.000000, NO</string>
+					<string>0.000000, 0.000000, 163.000000, 657.000000, NO</string>
+					<string>164.000000, 0.000000, 217.000000, 657.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMajorSplitViewState</key>
@@ -169,8 +169,8 @@
 				<real>0.0</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 381.000000, 555.000000, NO</string>
-					<string>0.000000, 556.000000, 381.000000, 96.000000, NO</string>
+					<string>0.000000, 0.000000, 350.000000, 555.000000, NO</string>
+					<string>0.000000, 556.000000, 350.000000, 148.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMinorSplitViewState</key>
@@ -180,34 +180,34 @@
 				<key>subviewState</key>
 				<array>
 					<string>0.000000, 0.000000, 163.000000, 555.000000, NO</string>
-					<string>164.000000, 0.000000, 217.000000, 555.000000, NO</string>
+					<string>164.000000, 0.000000, 186.000000, 555.000000, NO</string>
 				</array>
 			</dict>
 		</dict>
 		<key>majorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>286</real>
+			<real>0.0</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 411.000000, 752.000000, NO</string>
-				<string>412.000000, 0.000000, 639.000000, 752.000000, NO</string>
+				<string>0.000000, 0.000000, 381.000000, 702.000000, NO</string>
+				<string>382.000000, 0.000000, 724.000000, 702.000000, NO</string>
 			</array>
 		</dict>
 		<key>minorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>178</real>
+			<real>150</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 639.000000, 555.000000, NO</string>
-				<string>0.000000, 565.000000, 639.000000, 168.000000, NO</string>
+				<string>0.000000, 0.000000, 724.000000, 683.000000, NO</string>
+				<string>0.000000, 612.000000, 705.000000, 140.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{63, 4}, {1050, 774}}</string>
+		<string>{{180, 67}, {1105, 779}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {639, 555}}</string>
+		<string>{{0, 0}, {724, 683}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>
@@ -216,7 +216,7 @@
 		<key>serviceApplicationPath</key>
 		<string>/System/Library/CoreServices/Finder.app</string>
 		<key>serviceInputTypeIdentifier</key>
-		<string>com.apple.Automator.fileSystemObject.movie</string>
+		<string>com.apple.Automator.fileSystemObject</string>
 		<key>serviceOutputTypeIdentifier</key>
 		<string>com.apple.Automator.nothing</string>
 		<key>workflowTypeIdentifier</key>

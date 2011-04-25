@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -25,9 +25,11 @@
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0.4</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict>
+					<key>addChaps</key>
+					<dict/>
 					<key>addTags</key>
 					<dict/>
 					<key>overWrite</key>
@@ -35,6 +37,10 @@
 					<key>removeTags</key>
 					<dict/>
 					<key>renameFile</key>
+					<dict/>
+					<key>saveChaps</key>
+					<dict/>
+					<key>saveCsv</key>
 					<dict/>
 					<key>useFileNameForSearch</key>
 					<dict/>
@@ -56,6 +62,8 @@
 				<string>Add Movie Tags</string>
 				<key>ActionParameters</key>
 				<dict>
+					<key>addChaps</key>
+					<false/>
 					<key>addTags</key>
 					<false/>
 					<key>overWrite</key>
@@ -64,6 +72,10 @@
 					<true/>
 					<key>renameFile</key>
 					<false/>
+					<key>saveChaps</key>
+					<string>0</string>
+					<key>saveCsv</key>
+					<string>0</string>
 					<key>useFileNameForSearch</key>
 					<string>1</string>
 				</dict>
@@ -74,7 +86,7 @@
 				<key>BundleIdentifier</key>
 				<string>com.batchRip.Automator.Add_Movie_Tags</string>
 				<key>CFBundleVersion</key>
-				<string>1.0.4</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -86,7 +98,7 @@
 				<key>Class Name</key>
 				<string>AMShellScriptAction</string>
 				<key>InputUUID</key>
-				<string>ED6BB533-B135-4CAB-B54D-CA891AED42B8</string>
+				<string>8AF4470E-2EE3-48BF-83CF-05920CF9E153</string>
 				<key>Keywords</key>
 				<array>
 					<string>batch</string>
@@ -98,9 +110,9 @@
 					<string>themoviedb</string>
 				</array>
 				<key>OutputUUID</key>
-				<string>C6E23E88-50EB-4A3B-AE1A-53C16FF4C80C</string>
+				<string>0BE4DAAB-B1FC-439B-B258-85C776BF0A95</string>
 				<key>UUID</key>
-				<string>4A8D9963-5772-4F92-94A3-E60A890C645E</string>
+				<string>D17F06CF-B0BE-49AE-9DD7-8F7C4F943F94</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>AtomicParsley64</string>
@@ -110,9 +122,9 @@
 					<key>0</key>
 					<dict>
 						<key>default value</key>
-						<string>1</string>
+						<string>0</string>
 						<key>name</key>
-						<string>useFileNameForSearch</string>
+						<string>saveChaps</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -125,7 +137,7 @@
 						<key>default value</key>
 						<string>1</string>
 						<key>name</key>
-						<string>addTags</string>
+						<string>addChaps</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -164,7 +176,7 @@
 						<key>default value</key>
 						<string>0</string>
 						<key>name</key>
-						<string>overWrite</string>
+						<string>saveCsv</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -172,11 +184,50 @@
 						<key>uuid</key>
 						<string>4</string>
 					</dict>
+					<key>5</key>
+					<dict>
+						<key>default value</key>
+						<string>1</string>
+						<key>name</key>
+						<string>useFileNameForSearch</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>5</string>
+					</dict>
+					<key>6</key>
+					<dict>
+						<key>default value</key>
+						<string>1</string>
+						<key>name</key>
+						<string>addTags</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>6</string>
+					</dict>
+					<key>7</key>
+					<dict>
+						<key>default value</key>
+						<string>0</string>
+						<key>name</key>
+						<string>overWrite</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>7</string>
+					</dict>
 				</dict>
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>327.000000:461.000000</string>
+				<string>362.000000:628.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Add Movie Tags.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -195,21 +246,21 @@
 			<key>actionsMajorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>127</real>
+				<real>183</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 381.000000, 377.000000, NO</string>
-					<string>0.000000, 378.000000, 381.000000, 262.000000, NO</string>
+					<string>0.000000, 0.000000, 381.000000, 657.000000, NO</string>
+					<string>0.000000, 657.000000, 381.000000, 0.000000, YES</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>114</real>
+				<real>0.0</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 174.000000, 377.000000, NO</string>
-					<string>175.000000, 0.000000, 206.000000, 377.000000, NO</string>
+					<string>0.000000, 0.000000, 163.000000, 657.000000, NO</string>
+					<string>164.000000, 0.000000, 217.000000, 657.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMajorSplitViewState</key>
@@ -218,8 +269,8 @@
 				<real>0.0</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 381.000000, 555.000000, NO</string>
-					<string>0.000000, 556.000000, 381.000000, 96.000000, NO</string>
+					<string>0.000000, 0.000000, 350.000000, 555.000000, NO</string>
+					<string>0.000000, 556.000000, 350.000000, 148.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMinorSplitViewState</key>
@@ -229,18 +280,18 @@
 				<key>subviewState</key>
 				<array>
 					<string>0.000000, 0.000000, 163.000000, 555.000000, NO</string>
-					<string>164.000000, 0.000000, 217.000000, 555.000000, NO</string>
+					<string>164.000000, 0.000000, 186.000000, 555.000000, NO</string>
 				</array>
 			</dict>
 		</dict>
 		<key>majorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>397</real>
+			<real>0.0</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 381.000000, 685.000000, NO</string>
-				<string>382.000000, 0.000000, 654.000000, 685.000000, NO</string>
+				<string>0.000000, 0.000000, 381.000000, 702.000000, NO</string>
+				<string>382.000000, 0.000000, 724.000000, 702.000000, NO</string>
 			</array>
 		</dict>
 		<key>minorSplitViewState</key>
@@ -249,14 +300,14 @@
 			<real>150</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 654.000000, 516.000000, NO</string>
-				<string>0.000000, 526.000000, 654.000000, 140.000000, NO</string>
+				<string>0.000000, 0.000000, 724.000000, 683.000000, NO</string>
+				<string>0.000000, 612.000000, 705.000000, 140.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{63, 5}, {1035, 762}}</string>
+		<string>{{170, 73}, {1105, 779}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {654, 516}}</string>
+		<string>{{0, 0}, {724, 683}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>

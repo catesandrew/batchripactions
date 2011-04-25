@@ -27,12 +27,18 @@
 		<string>0</string>
 		<key>bdRom</key>
 		<string>0</string>
+		<key>copyDelay</key>
+		<string>120</string>
+		<key>discDelay</key>
+		<string>20</string>
 		<key>dvdRom</key>
 		<string>1</string>
 		<key>ejectDisc</key>
 		<string>0</string>
 		<key>fairmountPath</key>
-		<string>/Applications/FairMount/FairMount.app</string>
+		<string>/Applications/Fairmount.app</string>
+		<key>fullBdBackup</key>
+		<string>0</string>
 		<key>growlMe</key>
 		<string>0</string>
 		<key>makemkvPath</key>
@@ -43,6 +49,8 @@
 		<string>80</string>
 		<key>moviePath</key>
 		<string>~/Movies/Batch Rip Movies</string>
+		<key>renameDisc</key>
+		<string>1</string>
 		<key>saveLog</key>
 		<string>1</string>
 		<key>skipDuplicates</key>
@@ -65,7 +73,7 @@
 		<key>AMDNote</key>
 		<string>Options: Run Automatically disables user input.</string>
 		<key>AMDRequires</key>
-		<string>For DVD: Fairmount.app. For BD: MakeMKV.app, MKVToolNix</string>
+		<string>For DVD: Fairmount.app. For BD: MakeMKV.app.</string>
 		<key>AMDSummary</key>
 		<string>This action copies video DVDs and BDs to a chosen folder. Will cancel after 30 seconds unless set to Run Automatically.</string>
 	</dict>
@@ -110,7 +118,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Batch Rip v1.0.5, Copyright © 2009-2010 Robert Yamada</string>
+	<string>Batch Rip v1.0.6, Copyright © 2009-2010 Robert Yamada</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.batchRip.Automator.Batch_Rip</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -120,11 +128,11 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2009-2010 Robert Yamada</string>
 	<key>NSPrincipalClass</key>

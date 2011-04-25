@@ -65,6 +65,8 @@ EOF
 
 #############################################################################
 MAIN SCRIPT
+# Path to Current Items List
+currentItemsList="$HOME/Library/Application Support/Batch Rip/currentItems.txt"
 
 # Disable Folder Action
 disableFolderAction &
@@ -89,16 +91,16 @@ if [ "$returnInput" = "Enable" ]; then
 	test -z "$getPlistArgument" || defaults write "$HOME/Library/LaunchAgents/com.batchRip.BatchRipDispatcher" "ProgramArguments" -array-add "$HOME/Library/Automator/Batch Rip Dispatcher.action/Contents/Resources/batchRipDispatcher.sh"
 	# Set launchd user override.plist to Disabled key to false
 	launchctl load -w "$batchRipDispatcherPath"
-
+	"$HOME/Library/Automator/Batch Rip Dispatcher.action/Contents/Resources/batchRipDispatcher.sh"
 elif [ "$returnInput" = "Disable" ]; then
 	# Set launchd user override.plist to Disabled key to true
 	launchctl unload -w "$batchRipDispatcherPath"
-
+	test -z "$currentItemsList" || rm -f "$currentItemsList"
 elif [ "$returnInput" = "Reset" ]; then
 	# Set launchd user override.plist to Disabled key to true
 	launchctl unload -w "$batchRipDispatcherPath"
 	test -z "$HOME/Library/LaunchAgents/com.batchRip.BatchRipDispatcher.plist" || rm -f "$HOME/Library/LaunchAgents/com.batchRip.BatchRipDispatcher.plist"
-	test -z /tmp/batchRip || rm -rf /tmp/batchRip
+	test -z "$currentItemsList" || rm -f "$currentItemsList"
 	automator "$HOME/Library/Services/Batch Rip • Batch Rip Dispatcher.workflow"
 else
 	# Display Error if no input is returned

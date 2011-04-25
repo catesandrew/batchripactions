@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -474,7 +474,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>312.500000:454.000000</string>
+				<string>320.000000:414.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Rename Finder Items.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -652,7 +652,7 @@ done</string>
 				<key>isViewVisible</key>
 				<false/>
 				<key>location</key>
-				<string>312.500000:189.000000</string>
+				<string>320.000000:203.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Run Shell Script.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -674,7 +674,7 @@ done</string>
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0.1</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict>
 					<key>addTags</key>
@@ -708,7 +708,7 @@ done</string>
 					<key>overWrite</key>
 					<string>0</string>
 					<key>removeTags</key>
-					<string>1</string>
+					<false/>
 					<key>sortOrder</key>
 					<string>1</string>
 				</dict>
@@ -717,9 +717,9 @@ done</string>
 					<string>AtomicParsley64</string>
 				</array>
 				<key>BundleIdentifier</key>
-				<string>com.batchRip.Automator.</string>
+				<string>com.batchRip.Automator.Add_TV_Tags</string>
 				<key>CFBundleVersion</key>
-				<string>1.0.1</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -808,7 +808,7 @@ done</string>
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>312.500000:147.000000</string>
+				<string>320.000000:161.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Add TV Tags.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -818,14 +818,14 @@ done</string>
 	</array>
 	<key>connectors</key>
 	<dict>
-		<key>8315404D-0D1D-4CD4-AD9E-1B631FD1294D</key>
+		<key>04FA534A-42C2-4BDD-A520-E7B3B2BB050F</key>
 		<dict>
 			<key>from</key>
 			<string>DE3F047B-EA23-4256-A89E-B7D29CB145F2 - DE3F047B-EA23-4256-A89E-B7D29CB145F2</string>
 			<key>to</key>
 			<string>3E59F0C0-6CFB-45BF-80F1-4EABDB5A783C - 3E59F0C0-6CFB-45BF-80F1-4EABDB5A783C</string>
 		</dict>
-		<key>A96B197B-D979-45B6-B3C8-95D651D60334</key>
+		<key>E1FD144B-E6FB-4633-9DA3-C267E2F49695</key>
 		<dict>
 			<key>from</key>
 			<string>C477FCDB-96B7-45F2-BCB2-CF501DCDCD87 - C477FCDB-96B7-45F2-BCB2-CF501DCDCD87</string>
@@ -846,7 +846,7 @@ done</string>
 				<key>subviewState</key>
 				<array>
 					<string>0.000000, 0.000000, 410.000000, 475.000000, NO</string>
-					<string>0.000000, 476.000000, 410.000000, 176.000000, NO</string>
+					<string>0.000000, 476.000000, 410.000000, 144.000000, NO</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
@@ -886,8 +886,8 @@ done</string>
 			<real>287</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 410.000000, 697.000000, NO</string>
-				<string>411.000000, 0.000000, 640.000000, 697.000000, NO</string>
+				<string>0.000000, 0.000000, 410.000000, 665.000000, NO</string>
+				<string>411.000000, 0.000000, 640.000000, 665.000000, NO</string>
 			</array>
 		</dict>
 		<key>minorSplitViewState</key>
@@ -896,14 +896,14 @@ done</string>
 			<real>177</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 640.000000, 501.000000, NO</string>
-				<string>0.000000, 511.000000, 640.000000, 167.000000, NO</string>
+				<string>0.000000, 0.000000, 640.000000, 469.000000, NO</string>
+				<string>0.000000, 479.000000, 640.000000, 167.000000, NO</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{0, 4}, {1050, 774}}</string>
+		<string>{{209, 4}, {1050, 742}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 8}, {625, 501}}</string>
+		<string>{{0, 0}, {640, 469}}</string>
 	</dict>
 	<key>variables</key>
 	<array>

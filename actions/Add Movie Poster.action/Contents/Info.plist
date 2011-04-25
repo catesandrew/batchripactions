@@ -79,7 +79,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Add Movie Poster 1.0.5, Copyright © 2009-2010 Robert Yamada</string>
+	<string>Add Movie Poster 1.0.6, Copyright © 2009-2010 Robert Yamada</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.batchRipAutomator.Add_Movie_Poster</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -89,11 +89,11 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2009-2010 Robert Yamada</string>
 	<key>NSPrincipalClass</key>

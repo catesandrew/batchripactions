@@ -23,6 +23,8 @@
 	<string>AMCategoryFilesAndFolders</string>
 	<key>AMDefaultParameters</key>
 	<dict>
+		<key>addChaps</key>
+		<string>1</string>
 		<key>addTags</key>
 		<string>1</string>
 		<key>overWrite</key>
@@ -31,6 +33,10 @@
 		<string>0</string>
 		<key>renameFile</key>
 		<string>1</string>
+		<key>saveChaps</key>
+		<string>0</string>
+		<key>saveCsv</key>
+		<string>0</string>
 		<key>useFileNameForSearch</key>
 		<string>1</string>
 	</dict>
@@ -88,7 +94,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Add Movie Tags v1.0.5, Copyright © 2009-2010 Robert Yamada</string>
+	<string>Add Movie Tags v1.0.6, Copyright © 2009-2010 Robert Yamada</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.batchRip.Automator.Add_Movie_Tags</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -98,11 +104,11 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2009-2010 Robert Yamada.</string>
 	<key>NSPrincipalClass</key>

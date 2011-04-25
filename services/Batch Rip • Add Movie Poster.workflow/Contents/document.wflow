@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -25,16 +25,10 @@
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict>
-					<key>chooseFile</key>
-					<dict/>
 					<key>optionPopup</key>
-					<dict/>
-					<key>searchDb</key>
-					<dict/>
-					<key>useClipboard</key>
 					<dict/>
 				</dict>
 				<key>AMProvides</key>
@@ -54,13 +48,7 @@
 				<string>Add Movie Poster</string>
 				<key>ActionParameters</key>
 				<dict>
-					<key>chooseFile</key>
-					<string>0</string>
 					<key>optionPopup</key>
-					<string>0</string>
-					<key>searchDb</key>
-					<string>1</string>
-					<key>useClipboard</key>
 					<string>0</string>
 				</dict>
 				<key>Application</key>
@@ -70,7 +58,7 @@
 				<key>BundleIdentifier</key>
 				<string>com.batchRipAutomator.Add_Movie_Poster</string>
 				<key>CFBundleVersion</key>
-				<string>1.0</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -82,7 +70,7 @@
 				<key>Class Name</key>
 				<string>AMShellScriptAction</string>
 				<key>InputUUID</key>
-				<string>0A2338BF-4E3C-4BD1-82FA-DF36CB1F3653</string>
+				<string>635DF8F5-C0B2-43C9-85D7-F1E85B679CA8</string>
 				<key>Keywords</key>
 				<array>
 					<string>tag</string>
@@ -95,11 +83,9 @@
 					<string>movie</string>
 				</array>
 				<key>OutputUUID</key>
-				<string>4C0865D3-7160-49E9-AD81-A320A7A5A1DF</string>
-				<key>ShowWhenRun</key>
-				<true/>
+				<string>60323F66-93FB-457E-9DA7-575D0A303B1F</string>
 				<key>UUID</key>
-				<string>96468CBD-37D3-497A-965F-AA8F091C4769</string>
+				<string>CE125041-839B-4C44-8036-8B1785E573FC</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>mp4art</string>
@@ -123,7 +109,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>320.000000:445.000000</string>
+				<string>320.000000:621.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Add Movie Poster.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -142,11 +128,11 @@
 			<key>actionsMajorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>176</real>
+				<real>175</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 409.000000, 474.000000, NO</string>
-					<string>0.000000, 475.000000, 409.000000, 175.000000, NO</string>
+					<string>0.000000, 0.000000, 409.000000, 650.000000, NO</string>
+					<string>0.000000, 650.000000, 409.000000, 0.000000, YES</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
@@ -155,8 +141,8 @@
 				<real>298</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 176.000000, 474.000000, NO</string>
-					<string>177.000000, 0.000000, 232.000000, 474.000000, NO</string>
+					<string>0.000000, 0.000000, 176.000000, 650.000000, NO</string>
+					<string>177.000000, 0.000000, 232.000000, 650.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMajorSplitViewState</key>
@@ -193,17 +179,17 @@
 		<key>minorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>176</real>
+			<real>150</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 640.000000, 500.000000, NO</string>
-				<string>0.000000, 510.000000, 640.000000, 166.000000, NO</string>
+				<string>0.000000, 0.000000, 640.000000, 676.000000, NO</string>
+				<string>0.000000, 536.000000, 640.000000, 140.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{0, 6}, {1049, 772}}</string>
+		<string>{{191, 71}, {1049, 772}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {640, 500}}</string>
+		<string>{{0, 0}, {640, 676}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>

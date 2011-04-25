@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -25,22 +25,29 @@
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0.3</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict>
 					<key>addTags</key>
 					<dict/>
-					<key>custom1080pArgs</key>
-					<dict/>
+					<key>bdsup2subPath</key>
+					<dict>
+						<key>isPathPopUp</key>
+						<true/>
+						<key>variableUUIDsInMenu</key>
+						<array/>
+					</dict>
 					<key>custom720pArgs</key>
+					<dict/>
+					<key>customDvd2Args</key>
 					<dict/>
 					<key>customDvdArgs</key>
 					<dict/>
 					<key>customSdArgs</key>
 					<dict/>
-					<key>encode1080p</key>
-					<dict/>
 					<key>encode720p</key>
+					<dict/>
+					<key>encodeDVD2</key>
 					<dict/>
 					<key>encodeHdSources</key>
 					<dict/>
@@ -64,7 +71,23 @@
 					</dict>
 					<key>ignoreOptical</key>
 					<dict/>
+					<key>keepMkvTempFile</key>
+					<dict/>
 					<key>libraryFolder</key>
+					<dict>
+						<key>isPathPopUp</key>
+						<true/>
+						<key>variableUUIDsInMenu</key>
+						<array/>
+					</dict>
+					<key>makemkvPath</key>
+					<dict>
+						<key>isPathPopUp</key>
+						<true/>
+						<key>variableUUIDsInMenu</key>
+						<array/>
+					</dict>
+					<key>mkvtoolnixPath</key>
 					<dict>
 						<key>isPathPopUp</key>
 						<true/>
@@ -84,7 +107,15 @@
 						<key>variableUUIDsInMenu</key>
 						<array/>
 					</dict>
-					<key>overrideScriptToolArgs</key>
+					<key>nativeLanguage</key>
+					<dict/>
+					<key>preset720p</key>
+					<dict/>
+					<key>presetDvd</key>
+					<dict/>
+					<key>presetDvd2</key>
+					<dict/>
+					<key>presetSd</key>
 					<dict/>
 					<key>retiredFolder</key>
 					<dict>
@@ -94,8 +125,6 @@
 						<array/>
 					</dict>
 					<key>runBackgroundProcess</key>
-					<dict/>
-					<key>tsMuxerOverrride</key>
 					<dict/>
 					<key>tvMaxTime</key>
 					<dict/>
@@ -108,13 +137,17 @@
 						<key>variableUUIDsInMenu</key>
 						<array/>
 					</dict>
-					<key>useCustom1080pArgs</key>
-					<dict/>
 					<key>useCustom720pArgs</key>
+					<dict/>
+					<key>useCustomDvd2Args</key>
 					<dict/>
 					<key>useCustomDvdArgs</key>
 					<dict/>
 					<key>useCustomSdArgs</key>
+					<dict/>
+					<key>useDefaultAudioLanguage</key>
+					<dict/>
+					<key>verboseLog</key>
 					<dict/>
 					<key>videoKind</key>
 					<dict/>
@@ -137,33 +170,41 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>addTags</key>
-					<string>0</string>
-					<key>custom1080pArgs</key>
-					<string></string>
+					<true/>
+					<key>bdsup2subPath</key>
+					<string>/Applications/BDSup2Sub.jar</string>
 					<key>custom720pArgs</key>
+					<string></string>
+					<key>customDvd2Args</key>
 					<string></string>
 					<key>customDvdArgs</key>
 					<string></string>
 					<key>customSdArgs</key>
 					<string></string>
-					<key>encode1080p</key>
-					<string>0</string>
 					<key>encode720p</key>
+					<string>0</string>
+					<key>encodeDVD2</key>
 					<string>0</string>
 					<key>encodeHdSources</key>
 					<string>0</string>
 					<key>encodePath</key>
 					<string>~/Movies/Batch Encode</string>
 					<key>encodeSD</key>
-					<string>1</string>
+					<string>0</string>
 					<key>growlMe</key>
 					<string>0</string>
 					<key>hbPath</key>
 					<string>/Applications/HandBrakeCLI</string>
 					<key>ignoreOptical</key>
 					<string>1</string>
+					<key>keepMkvTempFile</key>
+					<string>0</string>
 					<key>libraryFolder</key>
 					<string></string>
+					<key>makemkvPath</key>
+					<string>/Applications/MakeMKV.app</string>
+					<key>mkvtoolnixPath</key>
+					<string>/Applications/Mkvtoolnix.app</string>
 					<key>moveExistingFiles</key>
 					<string>0</string>
 					<key>movieMaxTime</key>
@@ -172,13 +213,19 @@
 					<string>80</string>
 					<key>moviePath</key>
 					<string>~/Movies/Batch Rip Movies</string>
-					<key>overrideScriptToolArgs</key>
-					<string>0</string>
+					<key>nativeLanguage</key>
+					<string>eng</string>
+					<key>preset720p</key>
+					<string>Apple TV 2</string>
+					<key>presetDvd</key>
+					<string>Universal</string>
+					<key>presetDvd2</key>
+					<string>Apple TV 2</string>
+					<key>presetSd</key>
+					<string>Universal</string>
 					<key>retiredFolder</key>
 					<string></string>
 					<key>runBackgroundProcess</key>
-					<string>0</string>
-					<key>tsMuxerOverrride</key>
 					<string>0</string>
 					<key>tvMaxTime</key>
 					<string>120</string>
@@ -186,13 +233,17 @@
 					<string>20</string>
 					<key>tvPath</key>
 					<string>~/Movies/Batch Rip TV</string>
-					<key>useCustom1080pArgs</key>
-					<string>0</string>
 					<key>useCustom720pArgs</key>
+					<string>0</string>
+					<key>useCustomDvd2Args</key>
 					<string>0</string>
 					<key>useCustomDvdArgs</key>
 					<string>0</string>
 					<key>useCustomSdArgs</key>
+					<string>0</string>
+					<key>useDefaultAudioLanguage</key>
+					<string>1</string>
+					<key>verboseLog</key>
 					<string>0</string>
 					<key>videoKind</key>
 					<string>0</string>
@@ -204,7 +255,7 @@
 				<key>BundleIdentifier</key>
 				<string>com.batchRip.Automator.Batch_Encode</string>
 				<key>CFBundleVersion</key>
-				<string>1.0.3</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -216,7 +267,7 @@
 				<key>Class Name</key>
 				<string>AMShellScriptAction</string>
 				<key>InputUUID</key>
-				<string>DDC6F229-9E74-4112-8440-C967350405DF</string>
+				<string>CE3C8B02-B28E-4363-9BE8-B40DA88F5AC5</string>
 				<key>Keywords</key>
 				<array>
 					<string>dvd</string>
@@ -230,9 +281,9 @@
 					<string>rip</string>
 				</array>
 				<key>OutputUUID</key>
-				<string>B13CD0E0-1D3A-4B33-B0B1-A44B7E0A3164</string>
+				<string>05242BF6-6A81-4D17-BA94-BA7646A8EB67</string>
 				<key>UUID</key>
-				<string>49E060B9-751B-412C-9824-669C002E9B6B</string>
+				<string>0DD8A1C3-1A57-4CEB-9D10-155284A2F4B5</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>HandBrakeCLI</string>
@@ -242,9 +293,9 @@
 					<key>0</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>~/Movies/Batch Encode</string>
 						<key>name</key>
-						<string>tsMuxerOverrride</string>
+						<string>encodePath</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -257,7 +308,7 @@
 						<key>default value</key>
 						<string>0</string>
 						<key>name</key>
-						<string>useCustomSdArgs</string>
+						<string>encodeHdSources</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -268,9 +319,9 @@
 					<key>10</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>~/Movies/Batch Rip Movies</string>
 						<key>name</key>
-						<string>moveExistingFiles</string>
+						<string>moviePath</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -283,7 +334,7 @@
 						<key>default value</key>
 						<string>0</string>
 						<key>name</key>
-						<string>encode1080p</string>
+						<string>moveExistingFiles</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -294,9 +345,9 @@
 					<key>12</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string></string>
 						<key>name</key>
-						<string>overrideScriptToolArgs</string>
+						<string>customSdArgs</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -307,9 +358,9 @@
 					<key>13</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>Apple TV 2</string>
 						<key>name</key>
-						<string>addTags</string>
+						<string>presetDvd2</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -320,9 +371,9 @@
 					<key>14</key>
 					<dict>
 						<key>default value</key>
-						<string></string>
+						<string>0</string>
 						<key>name</key>
-						<string>customSdArgs</string>
+						<string>useCustomDvd2Args</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -333,9 +384,9 @@
 					<key>15</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>/Applications/BDSup2Sub.jar</string>
 						<key>name</key>
-						<string>encodeHdSources</string>
+						<string>bdsup2subPath</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -346,9 +397,9 @@
 					<key>16</key>
 					<dict>
 						<key>default value</key>
-						<string>180</string>
+						<string>0</string>
 						<key>name</key>
-						<string>movieMaxTime</string>
+						<string>encodeSD</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -359,9 +410,9 @@
 					<key>17</key>
 					<dict>
 						<key>default value</key>
-						<string></string>
+						<string>/Applications/HandBrakeCLI</string>
 						<key>name</key>
-						<string>custom720pArgs</string>
+						<string>hbPath</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -372,9 +423,9 @@
 					<key>18</key>
 					<dict>
 						<key>default value</key>
-						<string>1</string>
+						<string>0</string>
 						<key>name</key>
-						<string>ignoreOptical</string>
+						<string>useCustomSdArgs</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -385,9 +436,9 @@
 					<key>19</key>
 					<dict>
 						<key>default value</key>
-						<string></string>
+						<string>180</string>
 						<key>name</key>
-						<string>retiredFolder</string>
+						<string>movieMaxTime</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -398,9 +449,9 @@
 					<key>2</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>Apple TV 2</string>
 						<key>name</key>
-						<string>videoKind</string>
+						<string>preset720p</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -411,9 +462,9 @@
 					<key>20</key>
 					<dict>
 						<key>default value</key>
-						<string>1</string>
+						<string>~/Movies/Batch Rip TV</string>
 						<key>name</key>
-						<string>encodeSD</string>
+						<string>tvPath</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -426,7 +477,7 @@
 						<key>default value</key>
 						<string>0</string>
 						<key>name</key>
-						<string>runBackgroundProcess</string>
+						<string>useCustom720pArgs</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -437,9 +488,9 @@
 					<key>22</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>120</string>
 						<key>name</key>
-						<string>useCustomDvdArgs</string>
+						<string>tvMaxTime</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -450,9 +501,9 @@
 					<key>23</key>
 					<dict>
 						<key>default value</key>
-						<string>120</string>
+						<string>0</string>
 						<key>name</key>
-						<string>tvMaxTime</string>
+						<string>runBackgroundProcess</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -476,9 +527,9 @@
 					<key>25</key>
 					<dict>
 						<key>default value</key>
-						<string>80</string>
+						<string>eng</string>
 						<key>name</key>
-						<string>movieMinTime</string>
+						<string>nativeLanguage</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -489,9 +540,9 @@
 					<key>26</key>
 					<dict>
 						<key>default value</key>
-						<string>20</string>
+						<string>Universal</string>
 						<key>name</key>
-						<string>tvMinTime</string>
+						<string>presetSd</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -502,9 +553,9 @@
 					<key>27</key>
 					<dict>
 						<key>default value</key>
-						<string>~/Movies/Batch Rip TV</string>
+						<string></string>
 						<key>name</key>
-						<string>tvPath</string>
+						<string>retiredFolder</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -515,9 +566,9 @@
 					<key>28</key>
 					<dict>
 						<key>default value</key>
-						<string>/Applications/HandBrakeCLI</string>
+						<string></string>
 						<key>name</key>
-						<string>hbPath</string>
+						<string>custom720pArgs</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -528,9 +579,9 @@
 					<key>29</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>1</string>
 						<key>name</key>
-						<string>useCustom1080pArgs</string>
+						<string>useDefaultAudioLanguage</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -541,9 +592,9 @@
 					<key>3</key>
 					<dict>
 						<key>default value</key>
-						<string></string>
+						<string>/Applications/Mkvtoolnix.app</string>
 						<key>name</key>
-						<string>customDvdArgs</string>
+						<string>mkvtoolnixPath</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -551,12 +602,129 @@
 						<key>uuid</key>
 						<string>3</string>
 					</dict>
-					<key>4</key>
+					<key>30</key>
 					<dict>
 						<key>default value</key>
 						<string>0</string>
 						<key>name</key>
-						<string>growlMe</string>
+						<string>encodeDVD2</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>30</string>
+					</dict>
+					<key>31</key>
+					<dict>
+						<key>default value</key>
+						<string>/Applications/MakeMKV.app</string>
+						<key>name</key>
+						<string>makemkvPath</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>31</string>
+					</dict>
+					<key>32</key>
+					<dict>
+						<key>default value</key>
+						<string>0</string>
+						<key>name</key>
+						<string>encode720p</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>32</string>
+					</dict>
+					<key>33</key>
+					<dict>
+						<key>default value</key>
+						<string>0</string>
+						<key>name</key>
+						<string>addTags</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>33</string>
+					</dict>
+					<key>34</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>customDvd2Args</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>34</string>
+					</dict>
+					<key>35</key>
+					<dict>
+						<key>default value</key>
+						<string>80</string>
+						<key>name</key>
+						<string>movieMinTime</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>35</string>
+					</dict>
+					<key>36</key>
+					<dict>
+						<key>default value</key>
+						<string>0</string>
+						<key>name</key>
+						<string>verboseLog</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>36</string>
+					</dict>
+					<key>37</key>
+					<dict>
+						<key>default value</key>
+						<string>Universal</string>
+						<key>name</key>
+						<string>presetDvd</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>37</string>
+					</dict>
+					<key>38</key>
+					<dict>
+						<key>default value</key>
+						<string>0</string>
+						<key>name</key>
+						<string>useCustomDvdArgs</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>38</string>
+					</dict>
+					<key>4</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>customDvdArgs</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -567,9 +735,9 @@
 					<key>5</key>
 					<dict>
 						<key>default value</key>
-						<string>~/Movies/Batch Rip Movies</string>
+						<string>0</string>
 						<key>name</key>
-						<string>moviePath</string>
+						<string>keepMkvTempFile</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -580,9 +748,9 @@
 					<key>6</key>
 					<dict>
 						<key>default value</key>
-						<string>0</string>
+						<string>20</string>
 						<key>name</key>
-						<string>useCustom720pArgs</string>
+						<string>tvMinTime</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -593,9 +761,9 @@
 					<key>7</key>
 					<dict>
 						<key>default value</key>
-						<string>~/Movies/Batch Encode</string>
+						<string>0</string>
 						<key>name</key>
-						<string>encodePath</string>
+						<string>videoKind</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -608,7 +776,7 @@
 						<key>default value</key>
 						<string>0</string>
 						<key>name</key>
-						<string>encode720p</string>
+						<string>growlMe</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -619,9 +787,9 @@
 					<key>9</key>
 					<dict>
 						<key>default value</key>
-						<string></string>
+						<string>1</string>
 						<key>name</key>
-						<string>custom1080pArgs</string>
+						<string>ignoreOptical</string>
 						<key>required</key>
 						<string>0</string>
 						<key>type</key>
@@ -633,7 +801,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>319.500000:442.000000</string>
+				<string>354.500000:614.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Batch Encode.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -646,27 +814,27 @@
 	<key>state</key>
 	<dict>
 		<key>AMLogTabViewSelectedIndex</key>
-		<integer>1</integer>
+		<integer>0</integer>
 		<key>libraryState</key>
 		<dict>
 			<key>actionsMajorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>178</real>
+				<real>183</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 411.000000, 471.000000, NO</string>
-					<string>0.000000, 472.000000, 411.000000, 177.000000, NO</string>
+					<string>0.000000, 0.000000, 381.000000, 620.000000, NO</string>
+					<string>0.000000, 620.000000, 381.000000, 0.000000, YES</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>295</real>
+				<real>0.0</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 176.000000, 471.000000, NO</string>
-					<string>177.000000, 0.000000, 234.000000, 471.000000, NO</string>
+					<string>0.000000, 0.000000, 163.000000, 620.000000, NO</string>
+					<string>164.000000, 0.000000, 217.000000, 620.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMajorSplitViewState</key>
@@ -675,8 +843,8 @@
 				<real>0.0</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 381.000000, 555.000000, NO</string>
-					<string>0.000000, 556.000000, 381.000000, 96.000000, NO</string>
+					<string>0.000000, 0.000000, 350.000000, 555.000000, NO</string>
+					<string>0.000000, 556.000000, 350.000000, 148.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMinorSplitViewState</key>
@@ -686,34 +854,34 @@
 				<key>subviewState</key>
 				<array>
 					<string>0.000000, 0.000000, 163.000000, 555.000000, NO</string>
-					<string>164.000000, 0.000000, 217.000000, 555.000000, NO</string>
+					<string>164.000000, 0.000000, 186.000000, 555.000000, NO</string>
 				</array>
 			</dict>
 		</dict>
 		<key>majorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>283</real>
+			<real>0.0</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 411.000000, 694.000000, NO</string>
-				<string>412.000000, 0.000000, 639.000000, 694.000000, NO</string>
+				<string>0.000000, 0.000000, 381.000000, 665.000000, NO</string>
+				<string>382.000000, 0.000000, 724.000000, 665.000000, NO</string>
 			</array>
 		</dict>
 		<key>minorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>178</real>
+			<real>150</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 639.000000, 497.000000, NO</string>
-				<string>0.000000, 507.000000, 639.000000, 168.000000, NO</string>
+				<string>0.000000, 0.000000, 724.000000, 646.000000, NO</string>
+				<string>0.000000, 612.000000, 705.000000, 140.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{0, 7}, {1050, 771}}</string>
+		<string>{{188, 4}, {1105, 742}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {639, 497}}</string>
+		<string>{{0, 0}, {709, 646}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>

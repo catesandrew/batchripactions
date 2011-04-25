@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -25,7 +25,7 @@
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>1.0</string>
+				<string>1.0.6</string>
 				<key>AMParameterProperties</key>
 				<dict>
 					<key>genrePopup</key>
@@ -58,7 +58,7 @@
 				<key>BundleIdentifier</key>
 				<string>com.batchRip.Automator.Add_Genre_to_Movie_File</string>
 				<key>CFBundleVersion</key>
-				<string>1.0</string>
+				<string>1.0.6</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -70,7 +70,7 @@
 				<key>Class Name</key>
 				<string>AMShellScriptAction</string>
 				<key>InputUUID</key>
-				<string>6DCEAB3B-777D-40CD-BA84-4575992D9BE6</string>
+				<string>7F5592E6-F97F-49C0-BC1B-DE9E525862C8</string>
 				<key>Keywords</key>
 				<array>
 					<string>batch</string>
@@ -81,11 +81,9 @@
 					<string>movie</string>
 				</array>
 				<key>OutputUUID</key>
-				<string>9F56D7D1-50DD-4912-B696-284806972C53</string>
-				<key>ShowWhenRun</key>
-				<true/>
+				<string>849538E0-0575-42FC-A3AD-14B058EA4193</string>
 				<key>UUID</key>
-				<string>91CC1F02-04D2-43BA-9E37-9546164F0610</string>
+				<string>92DC9F24-B267-4B62-83A8-A58C1733700B</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>Finder</string>
@@ -109,7 +107,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>320.000000:446.000000</string>
+				<string>320.000000:623.000000</string>
 				<key>nibPath</key>
 				<string>/Users/robertyamada/Library/Automator/Add Genre to Movie File.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -179,17 +177,17 @@
 		<key>minorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>177</real>
+			<real>150</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 640.000000, 501.000000, NO</string>
-				<string>0.000000, 511.000000, 640.000000, 167.000000, NO</string>
+				<string>0.000000, 0.000000, 640.000000, 678.000000, NO</string>
+				<string>0.000000, 538.000000, 640.000000, 140.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{0, 4}, {1050, 774}}</string>
+		<string>{{190, 72}, {1050, 774}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {640, 501}}</string>
+		<string>{{0, 0}, {640, 678}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>

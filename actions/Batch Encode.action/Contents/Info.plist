@@ -27,30 +27,32 @@
 		<string>0</string>
 		<key>bdsup2subPath</key>
 		<string>/Applications/BDSup2Sub.jar</string>
-		<key>custom1080pArgs</key>
-		<string></string>
 		<key>custom720pArgs</key>
+		<string></string>
+		<key>customDvd2Args</key>
 		<string></string>
 		<key>customDvdArgs</key>
 		<string></string>
 		<key>customSdArgs</key>
 		<string></string>
-		<key>encode1080p</key>
-		<string>0</string>
 		<key>encode720p</key>
+		<string>0</string>
+		<key>encodeDVD2</key>
 		<string>0</string>
 		<key>encodeHdSources</key>
 		<string>0</string>
 		<key>encodePath</key>
 		<string>~/Movies/Batch Encode</string>
 		<key>encodeSD</key>
-		<string>1</string>
+		<string>0</string>
 		<key>growlMe</key>
 		<string>0</string>
 		<key>hbPath</key>
 		<string>/Applications/HandBrakeCLI</string>
 		<key>ignoreOptical</key>
 		<string>1</string>
+		<key>keepMkvTempFile</key>
+		<string>0</string>
 		<key>libraryFolder</key>
 		<string></string>
 		<key>makemkvPath</key>
@@ -67,8 +69,14 @@
 		<string>~/Movies/Batch Rip Movies</string>
 		<key>nativeLanguage</key>
 		<string>eng</string>
-		<key>overrideScriptToolArgs</key>
-		<string>0</string>
+		<key>preset720p</key>
+		<string>Apple TV 2</string>
+		<key>presetDvd</key>
+		<string>Universal</string>
+		<key>presetDvd2</key>
+		<string>Apple TV 2</string>
+		<key>presetSd</key>
+		<string>Universal</string>
 		<key>retiredFolder</key>
 		<string></string>
 		<key>runBackgroundProcess</key>
@@ -79,9 +87,9 @@
 		<string>20</string>
 		<key>tvPath</key>
 		<string>~/Movies/Batch Rip TV</string>
-		<key>useCustom1080pArgs</key>
-		<string>0</string>
 		<key>useCustom720pArgs</key>
+		<string>0</string>
+		<key>useCustomDvd2Args</key>
 		<string>0</string>
 		<key>useCustomDvdArgs</key>
 		<string>0</string>
@@ -101,7 +109,7 @@
 		<key>AMDRequires</key>
 		<string>This action requires the mp4v2 library installed in /usr/local. mp4v2 can be found at: http://code.google.com/p/mp4v2/. Also required is HandBrakeCLI and VLC. Optional: MakeMKV, Mkvtoolsnix, BDSup2Sub.jar.</string>
 		<key>AMDSummary</key>
-		<string>This action encodes DVD/BD content to m4v/mkv. This action receives no input from other actions, only input sources specified in the action panel. Input types: DVD-ROM, BD-ROM, VIDEO_TS, BDMV, m2ts, mkv, mp4, m4v, avi, mov, mpg. </string>
+		<string>This action encodes DVD/BD content to m4v/mkv. This action can receive input from other actions, or from input sources specified in the action panel. Input types: DVD-ROM, BD-ROM, VIDEO_TS, BDMV, m2ts, mkv, mp4, m4v, avi, mov, mpg. </string>
 	</dict>
 	<key>AMIconName</key>
 	<string>BatchRipIcon</string>
@@ -146,7 +154,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Batch Encode v1.0.5, Copyright © 2009-2010 Robert Yamada</string>
+	<string>Batch Encode v1.0.6, Copyright © 2009-2010 Robert Yamada</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.batchRip.Automator.Batch_Encode</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -156,11 +164,11 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2009-2010 Robert Yamada</string>
 	<key>NSPrincipalClass</key>

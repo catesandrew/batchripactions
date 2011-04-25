@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>AMApplicationBuild</key>
-	<string>246</string>
+	<string>247.1</string>
 	<key>AMApplicationVersion</key>
-	<string>2.1</string>
+	<string>2.1.1</string>
 	<key>AMDocumentVersion</key>
 	<string>2</string>
 	<key>actions</key>
@@ -129,7 +129,7 @@
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>319.000000:445.000000</string>
+				<string>319.000000:623.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Add Spotlight Comments to Finder Items.action/Contents/Resources/English.lproj/main.nib</string>
 			</dict>
@@ -148,11 +148,11 @@
 			<key>actionsMajorSplitViewState</key>
 			<dict>
 				<key>expandedPosition</key>
-				<real>178</real>
+				<real>177</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 411.000000, 474.000000, NO</string>
-					<string>0.000000, 475.000000, 411.000000, 177.000000, NO</string>
+					<string>0.000000, 0.000000, 411.000000, 652.000000, NO</string>
+					<string>0.000000, 652.000000, 411.000000, 0.000000, YES</string>
 				</array>
 			</dict>
 			<key>actionsMinorSplitViewState</key>
@@ -161,8 +161,8 @@
 				<real>298</real>
 				<key>subviewState</key>
 				<array>
-					<string>0.000000, 0.000000, 176.000000, 474.000000, NO</string>
-					<string>177.000000, 0.000000, 234.000000, 474.000000, NO</string>
+					<string>0.000000, 0.000000, 176.000000, 652.000000, NO</string>
+					<string>177.000000, 0.000000, 234.000000, 652.000000, NO</string>
 				</array>
 			</dict>
 			<key>variablesMajorSplitViewState</key>
@@ -199,17 +199,17 @@
 		<key>minorSplitViewState</key>
 		<dict>
 			<key>expandedPosition</key>
-			<real>178</real>
+			<real>150</real>
 			<key>subviewState</key>
 			<array>
-				<string>0.000000, 0.000000, 638.000000, 500.000000, NO</string>
-				<string>0.000000, 510.000000, 638.000000, 168.000000, NO</string>
+				<string>0.000000, 0.000000, 638.000000, 678.000000, NO</string>
+				<string>0.000000, 538.000000, 638.000000, 140.000000, YES</string>
 			</array>
 		</dict>
 		<key>windowFrame</key>
-		<string>{{0, 4}, {1049, 774}}</string>
+		<string>{{177, 79}, {1049, 774}}</string>
 		<key>workflowViewScrollPosition</key>
-		<string>{{0, 0}, {638, 500}}</string>
+		<string>{{0, 0}, {638, 678}}</string>
 	</dict>
 	<key>workflowMetaData</key>
 	<dict>

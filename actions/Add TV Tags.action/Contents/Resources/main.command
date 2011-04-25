@@ -10,6 +10,7 @@
 #  20091119-3 Fixed overWrite to leave original untouched if set to 0
 #  20091119-4 Moved add cover art to atomicParsley 
 #  20091126-5 Added substituteISO88591 subroutine
+#  20101202-6 Added preserve/set cnid
 
 #  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
@@ -185,6 +186,8 @@ addiTunesTagsTV()
 				"$atomicParsley64Path" "$theFile" --output "$newFile" --title "$episodeName" --artist "$showName" --albumArtist "$showName" --album "${showName}, Season ${seasonNum}" --sortOrder "album" "${showName}, Season ${seasonNum}" --disk "1/1" --year "$releaseDate" --purchaseDate "$purchaseDate" --description "$episodeDesc" --longDesc "$episodeDesc" --TVNetwork "$tvNetwork" --TVShowName "$showName" --TVEpisode "$episodeID" --TVSeasonNum "$seasonNum" --tracknum "$episodeNum" --TVEpisodeNum "$episodeNum" --stik "TV Show" --genre "$movieGenre" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes			
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
+			osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
+			mv "$newFile" "$theFile"
 		fi
 
 	else
@@ -227,6 +230,12 @@ do
 
 	if [[ "$fileExt" = "mp4" || "$fileExt" = "m4v" ]]; then
 	
+		# preserve Cnid
+		cnidNum=$("$mp4infoPath" "$theFile" | grep cnID | sed 's|.* ||')
+		if [[ -z "$cnidNum" ]]; then
+			cnidNum=$(echo $(( 10000+($RANDOM)%(20000-10000+1) ))$(( 1000+($RANDOM)%(9999-1000+1) )))
+		fi
+	
 		if [[ removeTags -eq 1 && addTags -eq 0 ]]; then
 		"$atomicParsley64Path" "$theFile" --overWrite --metaEnema
 		#"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
@@ -242,6 +251,11 @@ do
 				pixelHeight=$(echo "$getResolution" | sed 's|.*x||')
 				if [[ pixelWidth -gt 1279 || pixelHeight -gt 719 ]]; then
 					"$mp4tagsPath" -H 1 "$theFile"
+				fi
+
+				# Set Cnid Number
+				if [[ ! -z "$cnidNum" ]]; then
+					"$mp4tagsPath" -I "$cnidNum" "$theFile"
 				fi
 
 				# Add Chapters if chapter file exists
