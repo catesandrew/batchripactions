@@ -14,7 +14,7 @@
 #   20091203: Removed "&" from end of runScript call
 #   20091203: Changed runScript again batchEncode was finishing early
 
-#  Copyright (c) 2009 Robert Yamada
+#  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or
@@ -35,9 +35,7 @@ function appleScriptDialog () {
 		-- CANCEL AFTER 30 SECONDS OF NO INPUT
 tell application "Automator Runner"
 	activate
-	display dialog "$2" & " Detected: " & return Â
-		& "$1" & return Â
-		& "Select a video kind to continue." buttons {"Ignore", "TV Show", "Movie"} default button 1 giving up after 30 with icon 0
+	display dialog "$2" & " Detected: " & return & "$1" & return & "Select a video kind to continue." buttons {"Ignore", "TV Show", "Movie"} default button 1 giving up after 30 with icon 0
 	if the button returned of the result is "Ignore" then
 		return "Cancel"
 	else if the button returned of the result is "Movie" then
@@ -75,9 +73,14 @@ do
 		if [[ ! "${tvPath}" ]]; then tvPath=""; fi
 		if [[ ! "${moviePath}" ]]; then moviePath=""; fi
 		if [[ ! "${fairmountPath}" ]]; then fairmountPath=""; fi
+		if [[ ! "${makemkvPath}" ]]; then makemkvPath=""; fi
 		if [[ ! "${videoKind}" ]]; then videoKind="0"; fi
 		if [[ videoKind -eq 0 ]]; then videoKind="Movie"; fi
 		if [[ videoKind -eq 1 ]]; then videoKind="TV Show"; fi
+		if [[ ! "${tvMinTime}" ]]; then tvMinTime=0; fi
+		if [[ ! "${tvMaxTime}" ]]; then tvMaxTime=0; fi
+		if [[ ! "${movieMinTime}" ]]; then movieMinTime=0; fi
+		if [[ ! "${movieMaxTime}" ]]; then movieMaxTime=0; fi
 		
 		# Set path to batchRip.sh
 		scriptPath="$HOME/Library/Automator/Batch Rip.action/Contents/Resources/batchRip.sh"
@@ -93,11 +96,12 @@ do
 
 		# Temporarily replace spaces in paths
 		fairmountPath=`echo "$fairmountPath" | tr ' ' ':'`
+		makemkvPath=`echo "$makemkvPath" | tr ' ' ':'`
 		moviePath=`echo "$moviePath" | tr ' ' ':'`
 		tvPath=`echo "$tvPath" | tr ' ' ':'`
 		
 		# Set scriptArgs
-		scriptArgs="--skipDuplicates $skipDuplicates --encodeHdSources $bdRom --saveLog $saveLog --fairmountPath $fairmountPath --movieOutputDir $moviePath --tvOutputDir $tvPath --encodeDvdSources $dvdRom --growlMe $growlMe --onlyMakeMKV $useOnlyMakeMKV --ejectDisc $ejectDisc"
+		scriptArgs="--skipDuplicates $skipDuplicates --encodeHdSources $bdRom --saveLog $saveLog --fairmountPath $fairmountPath --makemkvPath $makemkvPath --movieOutputDir $moviePath --tvOutputDir $tvPath --encodeDvdSources $dvdRom --growlMe $growlMe --onlyMakeMKV $useOnlyMakeMKV --ejectDisc $ejectDisc --minTrackTimeTV $tvMinTime --maxTrackTimeTV $tvMaxTime --minTrackTimeMovie $movieMinTime --maxTrackTimeMovie $movieMaxTime"
 		
 		# Make temp folder
 		if [ ! -d /tmp/batchRip ]; then

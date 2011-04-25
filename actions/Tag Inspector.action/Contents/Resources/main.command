@@ -4,7 +4,7 @@
 # Tag Inspector
 
 #  Created by Robert Yamada on 11/13/09.
-#  Copyright (c) 2009 Robert Yamada
+#  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or

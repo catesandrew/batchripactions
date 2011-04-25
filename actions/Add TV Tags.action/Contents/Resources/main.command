@@ -11,7 +11,7 @@
 #  20091119-4 Moved add cover art to atomicParsley 
 #  20091126-5 Added substituteISO88591 subroutine
 
-#  Copyright (c) 2009 Robert Yamada
+#  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or
@@ -237,7 +237,7 @@ do
 				addiTunesTagsTV
 
 				# Set the HD Flag for HD-Video
-				getResolution=$(mp4info "$theFile" | egrep "1.*video" | awk -F,\  '{print $4}' | sed 's|\ @.*||')
+				getResolution=$("$mp4infoPath" "$theFile" | egrep "1.*video" | awk -F,\  '{print $4}' | sed 's|\ @.*||')
 				pixelWidth=$(echo "$getResolution" | sed 's|x.*||')
 				pixelHeight=$(echo "$getResolution" | sed 's|.*x||')
 				if [[ pixelWidth -gt 1279 || pixelHeight -gt 719 ]]; then

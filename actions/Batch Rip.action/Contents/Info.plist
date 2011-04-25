@@ -35,6 +35,8 @@
 		<string>/Applications/FairMount/FairMount.app</string>
 		<key>growlMe</key>
 		<string>0</string>
+		<key>makemkvPath</key>
+		<string>/Applications/MakeMKV.app</string>
 		<key>movieMaxTime</key>
 		<string>180</string>
 		<key>movieMinTime</key>
@@ -108,7 +110,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Batch Rip v1.0.4, Copyright © 2009 Robert Yamada</string>
+	<string>Batch Rip v1.0.5, Copyright © 2009-2010 Robert Yamada</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.batchRip.Automator.Batch_Rip</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -118,13 +120,13 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.4</string>
+	<string>1.0.5</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.4</string>
+	<string>1.0.5</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2009 Robert Yamada</string>
+	<string>Copyright © 2009-2010 Robert Yamada</string>
 	<key>NSPrincipalClass</key>
 	<string>AMShellScriptAction</string>
 </dict>

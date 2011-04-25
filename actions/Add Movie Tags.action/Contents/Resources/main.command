@@ -10,7 +10,7 @@
 #  20091113-2 Added support for search and tag
 #  20091118-3 Added underscore removal to $fileName
 
-#  Copyright (c) 2009 Robert Yamada
+#  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or
@@ -354,7 +354,7 @@ do
 			fi
 			
 			# Set the HD Flag for HD-Video
-			getResolution=$(mp4info "$theFile" | egrep "1.*video" | awk -F,\  '{print $4}' | sed 's|\ @.*||')
+			getResolution=$("$mp4infoPath" "$theFile" | egrep "1.*video" | awk -F,\  '{print $4}' | sed 's|\ @.*||')
 			pixelWidth=$(echo "$getResolution" | sed 's|x.*||')
 			pixelHeight=$(echo "$getResolution" | sed 's|.*x||')
 			if [[ pixelWidth -gt 1279 || pixelHeight -gt 719 ]]; then

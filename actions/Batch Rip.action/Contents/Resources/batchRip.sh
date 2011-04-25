@@ -1,7 +1,7 @@
 # !/bin/sh
 
-# batchRip.sh is a script to batch rip dvds with FairMount
-# Copyright (C) 2009  Robert Yamada
+# batchRip.sh is a script to batch rip dvds with FairMount or MakeMKV
+# Copyright (C) 2009-2010  Robert Yamada
 
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
@@ -28,13 +28,14 @@
 # 9.20091119.0 - added discCount to minimize wait time
 #10.20091120.1 - added back support for skipping duplicates
 #11.20091201.0 - Finally got around to adding subroutine to parse variables as args
-
+#12.20091204.0 - added discIdent Query to identify titles
+#13.20101113.0 - updated makemkv routine
 #############################################################################
 # globals
 
 ######### CONST GLOBAL VARIABLES #########
 scriptName=`basename "$0"`
-scriptVers="1.0.4"
+scriptVers="1.0.5"
 scriptPID=$$
 E_BADARGS=65
 
@@ -63,6 +64,12 @@ mkvinfoPath="/usr/local/bin/mkvinfo" # path to mkvinfo
 mkvmergePath="/usr/local/bin/mkvmerge" # path to mkvmerge
 growlNotify="/usr/local/bin/growlnotify"     # Path to growlNotify tool
 
+# SET MIN AND MAX TRACK TIME
+minTrackTimeTV="20"	    # this is in minutes
+maxTrackTimeTV="120"	# this is in minutes
+minTrackTimeMovie="80"	# this is in minutes
+maxTrackTimeMovie="180"	# this is in minutes
+
 # SET PREFERRED AUDIO LANGUAGE
 audioLanguage="English" # set to English, Espanol, Francais, etc.
 
@@ -71,45 +78,54 @@ audioLanguage="English" # set to English, Espanol, Francais, etc.
 
 parseVariablesInArgs() # Parses args passed from main.command
 {
-   if [ -z "$1" ]; then
-      return
-   fi
-   
-   while [ ! -z "$1" ]
-   do
-      case "$1" in
-         ( --skipDuplicates ) skipDuplicates=$2
-            shift ;;
-         ( --encodeHdSources ) encodeHdSources=$2
-            shift ;;
-         ( --saveLog ) saveLog=$2
-            shift ;;
-         ( --fairmountPath ) fairmountPath=$2
-            shift ;;
-         ( --movieOutputDir ) movieOutputDir=$2
-            shift ;;
-         ( --tvOutputDir ) tvOutputDir=$2
-            shift ;;
-         ( --encodeDvdSources ) encodeDvdSources=$2
-            shift ;;
-         ( --growlMe ) growlMe=$2
-            shift ;;
-         ( --onlyMakeMKV ) onlyMakeMKV=$2
-            shift ;;
-         ( --ejectDisc ) ejectDisc=$2
-            shift ;;
-         ( * ) echo "Args not recognized" ;;
-      esac
-      
-      shift
-   done
-   
-   # fix spaces in paths
-   fairmountPath=`echo "$fairmountPath" | tr ':' ' '`
-   movieOutputDir=`echo "$movieOutputDir" | tr ':' ' '`
-   tvOutputDir=`echo "$tvOutputDir" | tr ':' ' '`
-}
+	if [ -z "$1" ]; then
+		return
+	fi
 
+	while [ ! -z "$1" ]
+	do
+		case "$1" in
+			( --skipDuplicates ) skipDuplicates=$2
+			shift ;;
+			( --encodeHdSources ) encodeHdSources=$2
+			shift ;;
+			( --saveLog ) saveLog=$2
+			shift ;;
+			( --fairmountPath ) fairmountPath=$2
+			shift ;;
+			( --makemkvPath ) makemkvPath=$2
+			shift ;;
+			( --movieOutputDir ) movieOutputDir=$2
+			shift ;;
+			( --tvOutputDir ) tvOutputDir=$2
+			shift ;;
+			( --encodeDvdSources ) encodeDvdSources=$2
+			shift ;;
+			( --growlMe ) growlMe=$2
+			shift ;;
+			( --onlyMakeMKV ) onlyMakeMKV=$2
+			shift ;;
+			( --ejectDisc ) ejectDisc=$2
+			shift ;;
+			( --minTrackTimeTV ) minTrackTimeTV=$2
+			shift ;;
+			( --maxTrackTimeTV ) maxTrackTimeTV=$2
+			shift ;;
+			( --minTrackTimeMovie ) minTrackTimeMovie=$2
+			shift ;;
+			( --maxTrackTimeMovie ) maxTrackTimeMovie=$2
+			shift ;;
+			( * ) echo "Args not recognized" ;;
+		esac
+		shift
+	done
+
+	# fix spaces in paths
+	fairmountPath=`echo "$fairmountPath" | tr ':' ' '`
+	makemkvconPath=`echo "$makemkvPath" | tr ':' ' ' | sed 's|$|/Contents/MacOS/makemkvcon|'`
+	movieOutputDir=`echo "$movieOutputDir" | tr ':' ' '`
+	tvOutputDir=`echo "$tvOutputDir" | tr ':' ' '`
+}
 
 makeFoldersForMe() # Creates the output folders when makeFoldersForMe is set to 1
 {
@@ -129,7 +145,7 @@ sanityCheck () # Checks that apps are installed and input/output paths exist
 	toolList="$fairmountPath"
 
 	if [[ $encodeHdSources -eq 1 || $onlyMakeMKV -eq 1 ]]; then
-		toolList="$toolList|$makemkvconPath|$mkvinfoPath|$mkvmergePath"
+		toolList="$toolList|$makemkvconPath"
 	fi
 	if [[ $growlMe -eq 1 ]]; then
 		toolList="$toolList|$growlNotifyPath"
@@ -254,6 +270,13 @@ processDiscs ()
 	fi
 	
 	if [[ -d "/Volumes/$discName/VIDEO_TS" && ! onlyMakeMKV -eq 1 ]]; then
+		
+		# get name from discIdent
+		getNameFromDiscIdent=$(discIdentQuery "$sourcePath")
+		if [ ! -z "$getNameFromDiscIdent" ]; then
+			discName="$getNameFromDiscIdent"
+		fi
+		
 		# copy DVDs with FairMount
 		echo ""
 		echo "*Scanning ${discType}: $discName "
@@ -289,24 +312,43 @@ processDiscs ()
 	fi	
 
 	if [[ "$discType" = "BD-ROM" || onlyMakeMKV -eq 1  ]]; then
+		
+		if [ ! "$discType" = "BD-ROM" ]; then
+			# get name from discIdent
+			getNameFromDiscIdent=$(discIdentQuery "$sourcePath")
+			if [ ! -z "$getNameFromDiscIdent" ]; then
+				discName="$getNameFromDiscIdent"
+			fi
+		fi
+		
 		# make an MKV for each title of a BD, or DVD with makeMKV (if onlyMakeMKV is set to 1)
 		echo ""
 		echo "*Scanning ${discType}: $discName "
 
-		# get the track number of tracks
-		trackFetchList=`getTrackListMakeMKV`
-			
+		# get the track number of tracks which are within the time desired based on video kind
+		if [ "$videoKind" = "TV Show" ]; then
+			trackFetchList=`getTrackListMakeMKV $minTrackTimeTV $maxTrackTimeTV`
+		elif [ "$videoKind" = "Movie" ]; then
+			trackFetchList=`getTrackListMakeMKV $minTrackTimeMovie $maxTrackTimeMovie`
+		fi
+					
 		printTrackFetchList "$trackFetchList"
 
 		# process each track in the track list
 		for aTrack in $trackFetchList
 		do
 			if [ ! -e "${outputDir}/${discName}-${aTrack}.mkv" ]; then
+				# create tmp folder for source
+				discNameALNUM=`echo "$discName" | sed 's/[^[:alnum:]^-^_]//g'`
+				sourceTmpFolder="${tmpFolder}/${discNameALNUM}"
+				if [ ! -e "$sourceTmpFolder" ]; then
+					mkdir "$sourceTmpFolder"
+				fi
 				# makes an mkv file from the HD source
-				makeMKV "$audioLanguage" &
+				makeMKV &
 				wait
 				setFinderComment "${outputDir}/${discName}-${aTrack}.mkv" "$videoKind"
-				echo -e "${discName}-${aTrack}\nFinished:" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageRIP.txt &
+				echo -e "${discName}\nFinished:" `date "+%l:%M %p"` "\n" >> $tmpFolder/growlMessageRIP.txt &
 			else
 				echo ""
 				echo "  ${discName}-${aTrack}.mkv Skipped because file already exists"
@@ -318,6 +360,38 @@ processDiscs ()
 
 }
 
+discIdentQuery () 
+{
+	getFolderContents=`ls "${1}/VIDEO_TS"`
+
+	for theDiscItem in $getFolderContents
+	do
+		filePath=`echo "$theDiscItem" | sed "s|^|${1}/VIDEO_TS/|"`
+		fileString=`mdls -name kMDItemFSSize -raw "$filePath" | sed "s|^|/VIDEO_TS/${theDiscItem}:|"`
+		theString="$theString:$fileString"
+	done
+
+	# get hash code
+	generateHash=$(md5 -s "$theString" 2> /dev/null | sed -e 's|.*= ||' -e 's|^\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)|\1-\2-\3-\4-|' | tr 'a-z' 'A-Z')
+
+	# DiscIdent Fingerprint Query
+	fingerprintQuery=`curl -s "http://discident.com/v1/$generateHash/"`
+	discGnid=`echo "$fingerprintQuery" | sed -e 's|.*gtin": \"||' -e 's|".*||'`
+
+	# DiscIdent GTIN Query
+	gnidQuery=`curl -s "http://discident.com/v1/$discGnid/"`
+
+	discName=`echo "$fingerprintQuery" | sed -e 's|.*title": "||' -e 's|".*||'`
+	if [ ! -z "$discName" ]; then
+		discYear=`echo "$gnidQuery" | sed -e 's|.*productionYear": ||' -e 's|[^0-9*].*||'`
+		if [ ! -z "$discYear" ]; then
+			discName="$discName ($discYear)"
+		fi
+	fi
+
+	echo "$discName"
+}
+
 getTrackListMakeMKV() # Gets the only the tracks with in the min/max duration
 {
 	aReturn=""
@@ -325,50 +399,34 @@ getTrackListMakeMKV() # Gets the only the tracks with in the min/max duration
 
 	#	parse track info for BD optical disc
 	#   gets a list of tracks added by makemkv, weeds out angle2 & 3 tracks
-	scanTitles=`"$makemkvconPath" info disc:$deviceNum | egrep '(003036:000000:0000|003316:000000:0000 |003313:000000:0000|003317:000000:0000)' | sed 's|003316:000000:0000.* in file||g' | tr '\n' ',' | sed -e 's|title #[0-9]|&\||g' | tr '|' '\n' | sed -e 's|,|\||g' -e 's|\| |\||g' -e 's|^ ||' -e 's| |+|g' -e 's|^\|||' -e 's|\|$||' | grep -v "angle+2" | grep -v "angle+3"`
+	minTime="$1"
+	maxTime="$2"
+	minTimeSecs=$[$minTime*60]
+	trackList=`"$makemkvconPath" -r --minlength=$minTimeSecs info disc:$deviceNum | egrep 'TINFO\:.,9,0'`
+	#scanTitles=`"$makemkvconPath" info disc:$deviceNum | egrep '(003036:000000:0000|003316:000000:0000 |003313:000000:0000|003317:000000:0000)' | sed 's|003316:000000:0000.* in file||g' | tr '\n' ',' | sed -e 's|title #[0-9]|&\||g' | tr '|' '\n' | sed -e 's|,|\||g' -e 's|\| |\||g' -e 's|^ ||' -e 's| |+|g' -e 's|^\|||' -e 's|\|$||' | grep -v "angle+2" | grep -v "angle+3"`
 	# BDresult=00000.m2ts|003313:000000:0000+File+00012.mpls+was+added+as+title+#0
 	# DVDresult=003036:000000:0000+Title+#0+was+added+(41+cell(s)|1:54:42)
 
-	if [ "$discType" = "BD-ROM" ]; then
-		# compares each title in the title list for duplicates
-		# creates a list of titles that match. 0=1, 2=3
-		for eachTitle in $scanTitles ;
-		do
-			thisTrack=`echo "$eachTitle" | sed 's/.*#//'`
-			otherTitles=$(echo "$scanTitles" | sed -e "s/$eachTitle//g")
-			thisTitle=`echo "$eachTitle" | tr '|' '\n'`
-			for eachFile in $thisTitle ;
-			do
-				checkForDuplicate=$(echo "$otherTitles" | grep "$eachFile")
-				if [ ! $checkForDuplicate = "" ] ; then
-					duplicateTrack=`echo "$checkForDuplicate" | sed 's/.*#//'`
-					duplicatesFound=1
-					checkDuplicateList=$(echo "$duplicateList" | grep "$thisTrack")
-					if [ "$checkDuplicateList" = "" ] ; then
-						duplicateList="${duplicateList}${thisTrack}=${duplicateTrack}, "
-					fi
-				fi
-			done
-		done
-
-		# if duplicates are found selects the first item in the duplicate set
-		if [ ! -z "$duplicatesFound" ]; then
-			titleList=`echo "$duplicateList" | sed 's|=[0-9].||g' | tr ' ' '\n'`
-		else
-			titleList=`echo "$scanTitles" | sed 's|.*#||'`
+	trackNumber=""
+	for aline in $trackList
+	do
+		trackNumber=`echo $aline | sed 's|TINFO:||' | sed 's|,.*||'`
+		set -- `echo $aline | grep '[0-9]:[0-9].:[0-9].' | sed -e 's|.*,\"||g' -e 's|"||g' -e 's/:/ /g'`
+		if [ $3 -gt 29 ];
+			then let trackTime=(10#$1*60)+10#$2+1
+		else let trackTime=(10#$1*60)+10#$2
 		fi
-	fi
+		if [[ $trackTime -gt $minTime && $trackTime -lt $maxTime ]];
+			then titleList="$titleList $trackNumber"
+		fi
 
-	if [ "$discType" = "DVD-ROM" ]; then
-			titleList=`echo "$scanTitles" | tr '|' '\n' | grep "Title" | sed -e 's|.*#||' -e 's|\+was.*||'`
-	fi
+		if [ "$videoKind" = "Movie" ]; then
+			aReturn=`echo "$titleList" | awk -F\  '{print $1}'`
+		elif [ "$videoKind" = "TV Show" ]; then
+			aReturn="$titleList"
+		fi
+	done
 
-	# if a movie, returns 1 title. if tv show, returns all remaining titles
-	if [ "$videoKind" = "Movie" ]; then
-		aReturn=`echo "$titleList" | egrep -m1 ".*"`
-	elif [ "$videoKind" = "TV Show" ]; then
-		aReturn="$titleList"
-	fi
 	# returns the final list of titles to be encoded	
 	echo "$aReturn"
 }
@@ -410,82 +468,31 @@ makeMKV() # Makes an mkv from a title using a disc as source. Extracts main audi
 	# uses makeMKV to create mkv file from selected track
 	# makemkvcon includes all languages and subs, no way to exclude unwanted items
 	echo ""
-	echo "*Creating MKV temp file of Track: ${aTrack}"
-	if [[ ! -e "$tmpFile" && ! -e "$outFile" ]]; then
-		cmd="\"$makemkvconPath\" mkv disc:$deviceNum $aTrack \"$outputDir\" > /dev/null 2>&1"
+	echo "*Creating ${discName}-${aTrack}.mkv from Track: ${aTrack}"
+	if [ ! -e "$outFile" ]; then
+		
+		cmd="\"$makemkvconPath\" mkv --messages=-null --progress=${sourceTmpFolder}/${aTrack}-makemkv.txt --decrypt disc:$deviceNum $aTrack \"$outputDir\" > /dev/null 2>&1"
 		eval $cmd &
 		cmdPID=$!
-		echo ""
 		while [ `isPIDRunning $cmdPID` -eq 1 ]; do
-			printf "\e[1A"
-			printf "\e[2K"
-			if [ -e "$tmpFile" ]; then
-				du -h "$tmpFile" | sed -e 's|^ *||g' -e 's|\/.*$||' -e 's|^|    Copying: |'
-			else 
-				echo ""
-			fi
-			sleep 1s
-		done
-		echo ""
-		wait $cmdPID
-	fi
-
-	# uses mkvInfo to select correct audio track/language
-	if [[ -e "$tmpFile" && ! -e "$outFile" ]]; then
-		mkvInfoCmd="\"$mkvinfoPath\" \"$tmpFile\""
-		mkvInfo=`eval $mkvInfoCmd`
-		audioInfo=`echo "$mkvInfo" | sed 's|\| *||' | tr '\n' '|' | sed 's|\|+ A track|%|g' | tr '%' '\n' | sed -e 's|^\|+ ||' -e 's|\|+|,|g' | egrep ".*Track type: audio" | egrep ".*Language: $audioLang"`
-		if [ "$audioInfo" = "" ]; then
-			audioLang="eng"
-			audioInfo=`echo "$mkvInfo" | sed 's|\| *||' | tr '\n' '|' | sed 's|\|+ A track|%|g' | tr '%' '\n' | sed -e 's|^\|+ ||' -e 's|\|+|,|g' | egrep ".*Track type: audio" | egrep ".*Language: $audioLang"`
-		fi
-		dtsAc3Test=`echo "$audioInfo" | egrep '(A_DTS|A_AC3)' | egrep '.*Name: 3/2\+1'`
-
-		if [ ! "$dtsAc3Test" = "" ]; then
-			getCodec=$(echo "$dtsAc3Test" | sed -e 's|^.*Codec ID: ||' -e 's|,.*||')
-			getCodec1Line=$(echo "$getCodec" | tr '\n' ' ' | grep "A_DTS" | grep "A_AC3")
-
-			if [ ! "$getCodec1Line" = "" ]; then
-				audioCodec=$(echo "$getCodec" | egrep -m2 '(A_DTS|A_AC3)' | tr '\n' '/' | sed 's|/$||')
-				audioTrack=$(echo "$dtsAc3Test" | egrep -m2 '(A_DTS|A_AC3)' | sed -e 's|^Track number: ||' -e 's|,.*||' | tr '\n' ',' | sed 's|,$||')
-
-			elif [ `echo "$getCodec" | grep "A_DTS"` ];
-				then
-				audioCodec=$(echo "$getCodec" | egrep -m1 "A_DTS")
-				audioTrack=$(echo "$dtsAc3Test" | egrep -m1 "A_DTS" | sed -e 's|^Track number: ||' -e 's|,.*||')
+			if [[ -e "$tmpFile" && -e "${sourceTmpFolder}/${aTrack}-makemkv.txt" ]]; then
+				cmdStatusTxt="`tail -n 1 ${sourceTmpFolder}/${aTrack}-makemkv.txt | grep 'Current' | sed 's|.*progress|  Progress|'`"
+				echo "$cmdStatusTxt"
+				printf "\e[1A"
 			else
-				audioCodec=$(echo "$getCodec" | egrep -m1 "A_AC3")
-				audioTrack=$(echo "$dtsAc3Test" | egrep -m1 "A_AC3" | sed -e 's|^Track number: ||' -e 's|,.*||')
+				echo ""
+				printf "\e[1A"
 			fi
-		else
-			audioCodec=$(echo "$audioInfo" | egrep -m1 'Track type' | sed -e 's|^.*Codec ID: ||' -e 's|,.*||')
-			audioTrack=$(echo "$audioInfo" | egrep -m1 'Track type' | sed -e 's|^Track number: ||' -e 's|,.*||')
-		fi
-
-		# uses mkvmerge to extract main video & preferred audio language track 
-		# excludes other languages & subtitles, creating a new mkv file
-		echo -e "*Extracting Main Video and Audio Track ${audioTrack}: ${audioCodec}-${audioLang} from temp file"
-		cmd="\"$mkvmergePath\" -o \"$outFile\" -a 1,$audioTrack -S \"$tmpFile\" > ${tmpFolder}/${aTrack}-mkvmerge.txt"
-		eval $cmd &
-		cmdPID=$!
-		while [ `isPIDRunning $cmdPID` -eq 1 ]; do
-			cmdStatusTxt="`tail -n 1 ${tmpFolder}/${aTrack}-mkvmerge.txt | grep 'progress: '`"
-			if [ ! -z "$cmdStatusTxt" ]; then
-				echo -n "$cmdStatusTxt"
-			fi
-			sleep 1s
+			sleep 0.5s
 		done
 		echo ""
 		wait $cmdPID
-	else
-		echo -e "${discName}-${aTrack}.mkv\nSkipped because it already exists\n" >> $tmpFolder/growlMessageRIP.txt &
-		echo "  Skipped because file already exists"
 	fi
 
-	# deletes temp mkv file
-	if [[ -e "$tmpFile" && -e "$outFile" ]]; then
-		rm "$tmpFile"
+	if [[ -e "$tmpFile" && ! -e "$outFile" ]]; then
+		mv "$tmpFile" "$outFile"
 	fi
+
 }
 
 setFinderComment() # Sets the output file's Spotlight Comment to TV Show or Movie
@@ -493,7 +500,8 @@ setFinderComment() # Sets the output file's Spotlight Comment to TV Show or Movi
 	osascript -e "try" -e "set theFile to POSIX file \"$1\" as alias" -e "tell application \"Finder\" to set comment of theFile to \"$2\"" -e "end try" > /dev/null
 }
 
-function get_log () {
+get_log () 
+{
 	cat << EOF | osascript -l AppleScript
 	tell application "Terminal"
 		set theText to history of tab 1 of window 1
@@ -575,7 +583,8 @@ echo "  Use only MakeMKV: $onlyMakeMKVStatus"
 echo "  Encode HD Sources: $encodeHdStatus"
 echo "  Growl me when complete: $growlMeStatus"
 echo "  Eject discs when complete: $ejectDiscStatus"
-echo "  Preferred Audio Language: $audioLanguage"
+echo "  Copy TV Shows between: ${minTrackTimeTV}-${maxTrackTimeTV} mins (for MakeMKV)"
+echo "  Copy Movies between: ${minTrackTimeMovie}-${maxTrackTimeMovie} mins (for MakeMKV)"
 echo ""
 
 if [ ! -z "$discSearch" ]; then

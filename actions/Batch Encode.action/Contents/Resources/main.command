@@ -4,16 +4,16 @@
 # Batch Encode
 
 # changes
-# 20091020-1 Fixed tsMuxeR param typo.
 # 20091118-2 Added AS to change appearance of Terminal Session
 # 20091119-3 Added save session log
 # 20091201-0 Finally got around to adding subroutine to pass variables as args to shell
 # 20091203-0 Changed runScript call, was causing the script to quit early when set as a bg process
 # 20091203-1 Deleted runScript and went back to write args to file, still quit early with last change
+# ????????-0 Fixed parsing issue of custom args
  
 #  Created by Robert Yamada on 10/7/09.
 
-#  Copyright (c) 2009 Robert Yamada
+#  Copyright (c) 2009-2010 Robert Yamada
 #	This program is free software: you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation, either version 3 of the License, or
@@ -37,6 +37,9 @@
 	if [[ ! "${movieMinTime}" ]]; then movieMinTime=0; fi
 	if [[ ! "${movieMaxTime}" ]]; then movieMaxTime=0; fi
 	if [[ ! "${hbPath}" ]]; then hbPath="no selection"; fi
+	if [[ ! "${makemkvPath}" ]]; then makemkvPath="no selection"; fi
+	if [[ ! "${mkvtoolnixPath}" ]]; then mkvtoolnixPath="no selection"; fi
+	if [[ ! "${bdsup2subPath}" ]]; then bdsup2subPath="no selection"; fi
 	if [[ ! "${tvPath}" ]]; then tvPath="no selection"; fi
 	if [[ ! "${moviePath}" ]]; then moviePath="no selection"; fi
 	if [[ ! "${encodePath}" ]]; then encodePath="no selection"; fi
@@ -61,7 +64,8 @@
 
 	if [[ ! "${addTags}" ]]; then addTags=0; fi
 	if [[ ! "${growlMe}" ]]; then growlMe=0; fi
-	if [[ ! "${tsMuxerOverride}" ]]; then tsMuxerOverride=0; fi
+	if [[ ! "${audioLang}" ]]; then audioLang="eng"; fi
+	if [[ ! "${useDefaultAudioLanguage}" ]]; then useDefaultAudioLanguage="0"; fi
 
 	if [[ ! "${videoKind}" ]]; then videoKind="0"; fi
 	if [[ videoKind -eq 0 ]]; then videoKind="Movie"; fi
@@ -75,15 +79,18 @@
 	tvPath=`echo "$tvPath" | tr ' ' ':'`
 	encodePath=`echo "$encodePath" | tr ' ' ':'`
 	hbPath=`echo "$hbPath" | tr ' ' ':'`
+	makemkvPath=`echo "$makemkvPath" | tr ' ' ':'`
+	mkvtoolnixPath=`echo "$mkvtoolnixPath" | tr ' ' ':'`
+	bdsup2subPath=`echo "$bdsup2subPath" | tr ' ' ':'`
 	videoKindOverride=`echo "$videoKind" | tr ' ' ':'`
 	libraryFolder=`echo "$libraryFolder" | tr ' ' ':'`
 	retiredFolder=`echo "$retiredFolder" | tr ' ' ':'`
-	customDvdArgs=`echo "$customDvdArgs" | tr ' ' ':'`
-	custom720pArgs=`echo "$custom720pArgs" | tr ' ' ':'`
-	custom1080pArgs=`echo "$custom1080pArgs" | tr ' ' ':'`
-	customSdArgs=`echo "$customSdArgs" | tr ' ' ':'`
+	customDvdArgs=`echo "$customDvdArgs" | tr ' ' '@'`
+	custom720pArgs=`echo "$custom720pArgs" | tr ' ' '@'`
+	custom1080pArgs=`echo "$custom1080pArgs" | tr ' ' '@'`
+	customSdArgs=`echo "$customSdArgs" | tr ' ' '@'`
 
-	scriptArgs="--verboseLog $verboseLog --movieSearchDir $moviePath --tvSearchDir $tvPath --outputDir $encodePath --handBrakeCliPath $hbPath --minTrackTimeTV $tvMinTime --maxTrackTimeTV $tvMaxTime --minTrackTimeMovie $movieMinTime --maxTrackTimeMovie $movieMaxTime --encode_720p $encode720p --encode_SD $encodeSD --encode_1080p $encode1080p --encodeHdSources $encodeHdSources --ignoreOptical $ignoreOptical --growlMe $growlMe --tsMuxerOverride $tsMuxerOverride --videoKindOverride $videoKindOverride --addiTunesTags $addTags --retireExistingFile $moveExistingFiles --libraryFolder $libraryFolder --retiredFolder $retiredFolder --useCustomDvdArgs $useCustomDvdArgs --useCustom720pArgs $useCustom720pArgs --useCustom1080pArgs $useCustom1080pArgs --useCustomSdArgs $useCustomSdArgs --customDvdArgs $customDvdArgs --custom720pArgs $custom720pArgs --custom1080pArgs $custom1080pArgs --customSdArgs $customSdArgs"
+	scriptArgs="--verboseLog $verboseLog --movieSearchDir $moviePath --tvSearchDir $tvPath --outputDir $encodePath --handBrakeCliPath $hbPath --makemkvPath $makemkvPath --mkvtoolnixPath $mkvtoolnixPath --bdSup2SubPath $bdsup2subPath --minTrackTimeTV $tvMinTime --maxTrackTimeTV $tvMaxTime --minTrackTimeMovie $movieMinTime --maxTrackTimeMovie $movieMaxTime --nativeLanguage $nativeLanguage --useDefaultAudioLanguage $useDefaultAudioLanguage --encode_720p $encode720p --encode_SD $encodeSD --encode_1080p $encode1080p --encodeHdSources $encodeHdSources --ignoreOptical $ignoreOptical --growlMe $growlMe --videoKindOverride $videoKindOverride --addiTunesTags $addTags --retireExistingFile $moveExistingFiles --libraryFolder $libraryFolder --retiredFolder $retiredFolder --useCustomDvdArgs $useCustomDvdArgs --useCustom720pArgs $useCustom720pArgs --useCustom1080pArgs $useCustom1080pArgs --useCustomSdArgs $useCustomSdArgs --customDvdArgs $customDvdArgs --custom720pArgs $custom720pArgs --custom1080pArgs $custom1080pArgs --customSdArgs $customSdArgs"
 	
 	if [[ runBackgroundProcess -eq 1 ]]; then
 		"$scriptPath" "$scriptArgs" &
