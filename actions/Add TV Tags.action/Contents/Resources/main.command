@@ -30,7 +30,6 @@ scriptPID=$$
 #sortOrder="dvd" # set as default or dvd
 xpathPath="/usr/bin/xpath"
 xmllintPath="/usr/bin/xmllint"
-atomicParsley64Path="/usr/local/bin/AtomicParsley64"
 mp4infoPath="/usr/local/bin/mp4info"	# path to mp4info
 mp4tagsPath="/usr/local/bin/mp4tags"	# path to mp4tags
 mp4chapsPath="/usr/local/bin/mp4chaps"	# path to mp4chaps
@@ -66,6 +65,10 @@ addiTunesTagsTV()
 		substituteISO88591 "$(cat "$seriesXml")" > "$seriesXml"
 	fi
 
+	seriesXmlIconv="$sourceTmpFolder/${searchTerm}-S${seasonNum}-iconv.xml"
+	iconv -c -f UTF-8 -t US-ASCII < $seriesXml > $seriesXmlIconv
+	cp $seriesXmlIconv $seriesXml
+	
 	# get banner info		
 	bannerXml="$sourceTmpFolder/${searchTerm}-banners.xml"
 	if [ ! -e "$sourceTmpFolder/${searchTerm}-banners.xml" ]; then
@@ -85,8 +88,12 @@ addiTunesTagsTV()
 			curl -s "$tvdbMirror/api/9F21AC232F30F34D/series/$series_id/default/$seasonNum/$episodeNum/en.xml" > "$episodeXml"
 		fi
 	fi
+	
+	episodeXmlIconv="$sourceTmpFolder/${searchTerm}-${season_episode}-iconv.xml"
+	iconv -c -f UTF-8 -t US-ASCII < $episodeXml > $episodeXmlIconv
+	cp $episodeXmlIconv $episodeXml
 
-	#generate tags and tag with AtomicParsley
+	#generate tags and tag with mp4v2
 	if sed '1q;d' "$episodeXml" | grep '>' > /dev/null ; then
 		substituteISO88591 "$(cat "$episodeXml")" > "$episodeXml"
 		episodeName=`"$xpathPath" "$episodeXml" //EpisodeName 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed 's|\&amp;|\&|g'`
@@ -94,11 +101,18 @@ addiTunesTagsTV()
 		tvNetwork=`"$xpathPath" "$seriesXml" //Network 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 		releaseDate=`"$xpathPath" "$episodeXml" //FirstAired 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 		episodeDesc=`"$xpathPath" "$episodeXml" //Overview 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's|\&amp;|\&|g' -e 's|\&quot;||g'`
+		shortEpisodeDesc=`echo $episodeDesc | cut -c1-250`
+		len=${#episodeDesc}
+		if [ "$len" -gt "250" ] ; then
+		  shortEpisodeDesc="${shortEpisodeDesc}..."
+		fi
 		genreList=`"$xpathPath" "$seriesXml" //Genre 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
-		movieActors=`"$xpathPath" "$seriesXml" //Actors 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^_<dict><key>name</key><string>_' -e 's_\|$__' -e 's_$_</string></dict>_' -e 's_\|_</string></dict><dict><key>name</key><string>_g'`
-		movieGuests=`"$xpathPath" "$episodeXml" //GuestStars 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^_<dict><key>name</key><string>_' -e 's_\|$__' -e 's_$_</string></dict>_' -e 's_\|_</string></dict><dict><key>name</key><string>_g'`
-		movieDirector=`"$xpathPath" "$episodeXml" //Director 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^_<dict><key>name</key><string>_' -e 's_\|$__' -e 's_$_</string></dict>_' -e 's_\|_</string></dict><dict><key>name</key><string>_g'`
-		movieWriters=`"$xpathPath" "$episodeXml" //Writer 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^_<dict><key>name</key><string>_' -e 's_\|$__' -e 's_$_</string></dict>_' -e 's_\|_</string></dict><dict><key>name</key><string>_g'`
+		imdb_id=`"$xpathPath" "$seriesXml" //IMDB_ID 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
+		tvdb_id=`"$xpathPath" "$seriesXml" //SeriesID 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
+		movieActors=`"$xpathPath" "$seriesXml" //Actors 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^__' -e 's_\|$__' -e 's_$__' -e 's_\|_, _g'`
+		movieGuests=`"$xpathPath" "$episodeXml" //GuestStars 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^__' -e 's_\|$__' -e 's_$__' -e 's_\|_, _g'`
+		movieDirector=`"$xpathPath" "$episodeXml" //Director 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^__' -e 's_\|$__' -e 's_$__' -e 's_\|_, _g'`
+		movieWriters=`"$xpathPath" "$episodeXml" //Writer 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's_^\|__' -e 's_^__' -e 's_\|$__' -e 's_$__' -e 's_\|_, _g'`
 		purchaseDate=`date "+%Y-%m-%d %H:%M:%S"`
 
 		# parse category info and convert into iTunes genre
@@ -156,42 +170,34 @@ addiTunesTagsTV()
 		fi
 	fi
 
-		# create movie tags reverseDNS xml file
-		movieTagsXml="${sourceTmpFolder}/${searchTerm}-${season_episode}_tags_tmp.xml"
-		if [ ! -e $movieTagsXml ] ; then
-			xmlFile="<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>cast</key><array>${movieActors}${movieGuests}</array><key>directors</key><array>${movieDirector}</array><key>screenwriters</key><array>${movieWriters}</array></dict></plist>"
-			echo "$xmlFile" | tr -cd '\11\12\40-\176' | "$xmllintPath" --format --output "${sourceTmpFolder}/${searchTerm}-${season_episode}_tags_tmp.xml" -	
-		fi
-		movieTagsData=`cat "$movieTagsXml"`
-
 		# removeTags
 		if [[ removeTags -eq 1 ]]; then
-		#"$atomicParsley64Path" "$theFile" --overWrite --metaEnema
 		"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
 		fi
 
-		# write tags with atomic parsley
+		# write tags with mp4v2
 		if [[ overWrite -eq 1 ]]; then
 			if [[ -e "$tvPoster" && "$imgIntegrityTest" -gt 100 ]]; then
-				"$atomicParsley64Path" "$theFile" --artwork REMOVE_ALL --overWrite --title "$episodeName" --artist "$showName" --albumArtist "$showName" --album "${showName}, Season ${seasonNum}" --sortOrder "album" "${showName}, Season ${seasonNum}" --disk "1/1" --year "$releaseDate" --purchaseDate "$purchaseDate" --description "$episodeDesc" --longDesc "$episodeDesc" --TVNetwork "$tvNetwork" --TVShowName "$showName" --TVEpisode "$episodeID" --TVSeasonNum "$seasonNum" --tracknum "$episodeNum" --TVEpisodeNum "$episodeNum" --stik "TV Show" --artwork "$tvPoster" --genre "$movieGenre" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  #--artwork REMOVE_ALL --overWrite
+			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -picture "$tvPoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 			else
-				"$atomicParsley64Path" "$theFile" --artwork REMOVE_ALL --overWrite --title "$episodeName" --artist "$showName" --albumArtist "$showName" --album "${showName}, Season ${seasonNum}" --sortOrder "album" "${showName}, Season ${seasonNum}" --disk "1/1" --year "$releaseDate" --purchaseDate "$purchaseDate" --description "$episodeDesc" --longDesc "$episodeDesc" --TVNetwork "$tvNetwork" --TVShowName "$showName" --TVEpisode "$episodeID" --TVSeasonNum "$seasonNum" --tracknum "$episodeNum" --TVEpisodeNum "$episodeNum" --stik "TV Show" --genre "$movieGenre" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  #--artwork REMOVE_ALL --overWrite
+			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
 		elif [[ overWrite -eq 0 ]]; then
 			newFile="${outputDir}/${fileName}-${scriptPID}.${fileExt}"
 			if [[ -e "$tvPoster" && "$imgIntegrityTest" -gt 100 ]]; then
-				"$atomicParsley64Path" "$theFile" --output "$newFile" --artwork REMOVE_ALL --title "$episodeName" --artist "$showName" --albumArtist "$showName" --album "${showName}, Season ${seasonNum}" --sortOrder "album" "${showName}, Season ${seasonNum}" --disk "1/1" --year "$releaseDate" --purchaseDate "$purchaseDate" --description "$episodeDesc" --longDesc "$episodeDesc" --TVNetwork "$tvNetwork" --TVShowName "$showName" --TVEpisode "$episodeID" --TVSeasonNum "$seasonNum" --tracknum "$episodeNum" --TVEpisodeNum "$episodeNum" --stik "TV Show" --artwork "$tvPoster" --genre "$movieGenre" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  #--artwork REMOVE_ALL
+			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -picture "$tvPoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 			else
-				"$atomicParsley64Path" "$theFile" --output "$newFile" --title "$episodeName" --artist "$showName" --albumArtist "$showName" --album "${showName}, Season ${seasonNum}" --sortOrder "album" "${showName}, Season ${seasonNum}" --disk "1/1" --year "$releaseDate" --purchaseDate "$purchaseDate" --description "$episodeDesc" --longDesc "$episodeDesc" --TVNetwork "$tvNetwork" --TVShowName "$showName" --TVEpisode "$episodeID" --TVSeasonNum "$seasonNum" --tracknum "$episodeNum" --TVEpisodeNum "$episodeNum" --stik "TV Show" --genre "$movieGenre" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes			
+			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
-			osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
-			mv "$newFile" "$theFile"
 		fi
 
 	else
-		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Could not find a match." & Return & "Check TV Show Name, Season Number and Episode Number."'
+		oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Could not find a match." & Return & "Check TV Show Name, Season Number and Episode Number."'
 	fi
 	
 }
@@ -219,7 +225,7 @@ do
 	if [[ sortOrder -eq 1 ]]; then sortOrder="dvd"; fi
 	
 	if [[ ! -x "$mp4infoPath" || ! -x "$mp4tagsPath" || ! -x "$mp4artPath" || ! -x "$mp4chapsPath" ]]; then
-		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: mp4v2 Library cannot be found" & Return & "Please install mp4v2 tools in /usr/local/bin" & Return & "Get mp4v2 at: http://code.google.com/p/mp4v2/"'
+    oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: mp4v2 Library cannot be found" & Return & "Please install mp4v2 tools in /usr/local/bin" & Return & "Get mp4v2 at: http://code.google.com/p/mp4v2/"'
 		exit 1
 	fi
 	
@@ -237,8 +243,7 @@ do
 		fi
 	
 		if [[ removeTags -eq 1 && addTags -eq 0 ]]; then
-		"$atomicParsley64Path" "$theFile" --overWrite --metaEnema
-		#"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
+		"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
 		fi
 
 		if echo "$theFile" | egrep '.* - S[0-9]{2}E[0-9]{2}\....' ; then
@@ -249,13 +254,14 @@ do
 				getResolution=$("$mp4infoPath" "$theFile" | egrep "1.*video" | awk -F,\  '{print $4}' | sed 's|\ @.*||')
 				pixelWidth=$(echo "$getResolution" | sed 's|x.*||')
 				pixelHeight=$(echo "$getResolution" | sed 's|.*x||')
+
 				if [[ pixelWidth -gt 1279 || pixelHeight -gt 719 ]]; then
-					"$mp4tagsPath" -H 1 "$theFile"
+					"$mp4tagsPath" -hdvideo 1 "$theFile"
 				fi
 
 				# Set Cnid Number
 				if [[ ! -z "$cnidNum" ]]; then
-					"$mp4tagsPath" -I "$cnidNum" "$theFile"
+					"$mp4tagsPath" -contentid "$cnidNum" "$theFile"
 				fi
 
 				# Add Chapters if chapter file exists
@@ -272,11 +278,11 @@ do
 			fi
 
 		else
-			osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Naming Convention." & Return & "Cannot parse the filename." & Return & "Rename your file: TV Show Name - S##E##.m4v "'
+			oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Naming Convention." & Return & "Cannot parse the filename." & Return & "Rename your file: TV Show Name - S##E##.m4v "'
 		fi
 	else
-		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Type Extension. Cannot determine if file is mpeg-4 compatible." & Return & "File extension and type must be .mp4 or .m4v."'
+		oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Type Extension. Cannot determine if file is mpeg-4 compatible." & Return & "File extension and type must be .mp4 or .m4v."'
 	fi
 	
-	osascript -e "set theFile to POSIX file \"$theFile\"" -e 'tell application "Finder" to update theFile'
+	oascript -e "set theFile to POSIX file \"$theFile\"" -e 'tell application "Finder" to update theFile'
 done
