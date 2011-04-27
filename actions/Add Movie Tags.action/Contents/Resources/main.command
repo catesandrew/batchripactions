@@ -29,7 +29,6 @@
 scriptPID=$$
 xpathPath="/usr/bin/xpath"
 xmllintPath="/usr/bin/xmllint"
-atomicParsley64Path="/usr/local/bin/AtomicParsley64"
 mp4infoPath="/usr/local/bin/mp4info"	# path to mp4info
 mp4tagsPath="/usr/local/bin/mp4tags"	# path to mp4tags
 mp4artPath="/usr/local/bin/mp4art"		# path to mp4art
@@ -96,6 +95,10 @@ function getMovieTagsFromFileName () {
 			if [ ! -e "$movieData" ]; then
 				curl -s "http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/8d7d0edf7ec73435ea5d99d9cba9b54d/$theMovieID" > "$movieData"
 				substituteISO88591 "$(cat "$movieData")" > "$movieData"
+				
+				movieDataIconv="${sourceTmpFolder}/${theMovieID}_tbdb_tmp-iconv.xml"
+      	iconv -c -f UTF-8 -t US-ASCII < $movieData > $movieDataIconv
+      	cp $movieDataIconv $movieData
 			fi
 
 			# get movie title and release date
@@ -200,13 +203,23 @@ function addMovieTags () {
 		substituteISO88591 "$(cat "$movieData")" > "$movieData"
 		movieTitle=`"$xpathPath" "$movieData" //name 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}' | sed -e 's|: | - |g' -e 's|\&amp;|\&|g' -e "s|&apos;|\'|g"`
 		videoType=`"$xpathPath" "$movieData" "//type" 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
-		movieDirector=`"$xpathPath" "$movieData" "//person[@job='Director']/@name" 2>/dev/null | sed 's| name="||g' | tr '\"' '\n' | sed -e '/./!d' -e 's|^|<string>|g' -e 's|^|<dict><key>name</key>|g' -e 's|$|</string></dict>|g'`
-		movieProducers=`"$xpathPath" "$movieData" "//person[@job='Executive Producer']/@name|//person[@job='Producer']/@name" 2>/dev/null | sed 's| name="||g' | tr '\"' '\n' | sed -e '/./!d' -e 's|^|<string>|g' -e 's|^|<dict><key>name</key>|g' -e 's|$|</string></dict>|g'`
-		movieWriters=`"$xpathPath" "$movieData" "//person[@job='Screenplay']/@name" 2>/dev/null | sed 's| name="||g' | tr '\"' '\n' | sed -e '/./!d' -e 's|^|<string>|g' -e 's|^|<dict><key>name</key>|g' -e 's|$|</string></dict>|g'`
-		movieActors=`"$xpathPath" "$movieData" "//person[@job='Actor']/@name" 2>/dev/null | sed 's| name="||g' | tr '\"' '\n' | sed -e '/./!d' -e 's|^|<string>|g' -e 's|^|<dict><key>name</key>|g' -e 's|$|</string></dict>|g'`
+		movieDirector=`"$xpathPath" "$movieData" "//person[@job='Director']/@name" 2>/dev/null | sed -e 's| name="||g' -e 's|"|, |g' -e '/./!d' -e 's|, $||'`
+		movieProducers=`"$xpathPath" "$movieData" "//person[@job='Executive Producer']/@name|//person[@job='Producer']/@name" 2>/dev/null | sed -e 's| name="||g' -e 's|"|, |g' -e '/./!d' -e 's|, $||'`
+		movieWriters=`"$xpathPath" "$movieData" "//person[@job='Screenplay']/@name" 2>/dev/null | sed -e 's| name="||g' -e 's|"|, |g' -e '/./!d' -e 's|, $||'`
+		movieActors=`"$xpathPath" "$movieData" "//person[@job='Actor']/@name" 2>/dev/null | sed -e 's| name="||g' -e 's|"|, |g' -e '/./!d' -e 's|, $||'`		
 		albumArtists=`"$xpathPath" "$movieData" "//person[@job='Actor']/@name" 2>/dev/null | sed -e 's| name="||g' -e 's|"|, |g' -e '/./!d' -e 's|, $||'`
 		releaseDate=`"$xpathPath" "$movieData" //released 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 		movieDesc=`"$xpathPath" "$movieData" //overview 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
+		
+		shortMovieDesc=`echo $movieDesc | cut -c1-250`
+		len=${#movieDesc}
+		if [ "$len" -gt "250" ] ; then
+		  shortMovieDesc="${shortMovieDesc}..."
+		fi
+		
+		imdb_id=`"$xpathPath" "$movieData" //imdb_id 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
+		tmdb_id=`"$xpathPath" "$movieData" //id 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
+		
 		contentRating=`"$xpathPath" "$movieData" //certification 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 		genreList=`"$xpathPath" "$movieData" "//category[@type='genre']/@name" 2>/dev/null | sed 's| name="||g' | tr '\"' '\n' | sed -e '/./!d' -e 's|^|<string>|g' -e 's|^|<dict><key>name</key>|g' -e 's|$|</string></dict>|g'`
 		purchaseDate=`date "+%Y-%m-%d %H:%M:%S"`
@@ -260,60 +273,52 @@ function addMovieTags () {
 			done
 		fi
 
-		# create movie tags reverseDNS xml file
-		movieTagsXml="${sourceTmpFolder}/${theMovieID}_tags_tmp.xml"
-		if [ ! -e $movieTagsXml ] ; then
-			xmlFile="<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>cast</key><array>${movieActors}</array><key>directors</key><array>${movieDirector}</array><key>screenwriters</key><array>${movieWriters}</array><key>producers</key><array>${movieProducers}</array></dict></plist>"
-			echo "$xmlFile" | tr -cd '\11\12\40-\176' | "$xmllintPath" --format --output "$movieTagsXml" - 
-		fi
-		movieTagsData=`cat "$movieTagsXml"`
-
 		# removeTags
 		if [[ removeTags -eq 1 ]]; then
-		#"$atomicParsley64Path" "$theFile" --overWrite --metaEnema
 		"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
 		fi
-
-		# write tags with atomic parsley
-		echo -e "\n*Writing tags with AtomicParsley\c"
+		
+		# write tags with mp4v2
 		if [[ overWrite -eq 1 ]]; then
 			if [[ -e "$moviePoster" && "$imgIntegrityTest" -gt 100 ]]; then
-				"$atomicParsley64Path" "$theFile" --artwork REMOVE_ALL --overWrite --title "$movieTitleAndYear" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --artwork "$moviePoster" --genre "$movieGenre" --contentRating "$contentRating" --description "$movieDesc" --longDescription "$movieDesc" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  #--artwork REMOVE_ALL --overWrite
+			  "$mp4tagsPath" -song "$movieTitle" -artist "$albumArtists" -year "$releaseDate" -description "$shortMovieDesc" -longdesc "$movieDesc" -type "Movie" -picture "$moviePoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -producers "$movieProducers" -comment "{'imdb_id':'${imdb_id}', 'tmdb_id':'${tmdb_id}'}" -crating "$contentRating" "$theFile"
 			else
-				"$atomicParsley64Path" "$theFile" --artwork REMOVE_ALL --overWrite --title "$movieTitleAndYear" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --genre "$movieGenre" --contentRating "$contentRating" --description "$movieDesc" --longDescription "$movieDesc" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  #--artwork REMOVE_ALL --overWrite
+			  "$mp4tagsPath" -song "$movieTitle" -artist "$albumArtists" -year "$releaseDate" -description "$shortMovieDesc" -longdesc "$movieDesc" -type "Movie" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -producers "$movieProducers" -comment "{'imdb_id':'${imdb_id}', 'tmdb_id':'${tmdb_id}'}" -crating "$contentRating" "$theFile"
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add Movie Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
-
 		elif [[ overWrite -eq 0 ]]; then
 			newFile="${outputDir}/${movieTitle} (${releaseYear})-${scriptPID}.${fileExt}"
 			if [[ -e "$moviePoster" && "$imgIntegrityTest" -gt 100 ]]; then
-				"$atomicParsley64Path" "$theFile" --output "$newFile" --artwork REMOVE_ALL --title "$movieTitleAndYear" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --contentRating "$contentRating" --artwork "$moviePoster" --genre "$movieGenre" --description "$movieDesc" --longDescription "$movieDesc" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  "$mp4tagsPath" -song "$movieTitle" -artist "$albumArtists" -year "$releaseDate" -description "$shortMovieDesc" -longdesc "$movieDesc" -type "Movie" -picture "$moviePoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -producers "$movieProducers" -comment "{'imdb_id':'${imdb_id}', 'tmdb_id':'${tmdb_id}'}" -crating "$contentRating" "$theFile"
 			else
-				"$atomicParsley64Path" "$theFile" --output "$newFile" --title "$movieTitleAndYear" --artist "$albumArtists" --year "$releaseDate" --purchaseDate "$purchaseDate" --genre "$movieGenre" --contentRating "$contentRating" --description "$movieDesc" --longDescription "$movieDesc" --rDNSatom "$movieTagsData" name=iTunMOVI domain=com.apple.iTunes
+			  "$mp4tagsPath" -song "$movieTitle" -artist "$albumArtists"   -year "$releaseDate" -description "$shortMovieDesc" -longdesc "$movieDesc" -type "Movie" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -producers "$movieProducers" -comment "{'imdb_id':'${imdb_id}', 'tmdb_id':'${tmdb_id}'}" -crating "$contentRating" "$theFile"
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add Movie Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
 		fi
+	
 		
 		renameFilePath="${outputDir}/${movieTitleAndYear}.${fileExt}"
-		if [[ renameFile -eq 1 && ! "$theFile" = "$renameFilePath" ]]; then
-			if [ ! -e "$renameFilePath" ]; then
-				if [[ overWrite -eq 0 && -e "$newFile" ]]; then
-					mv "$newFile" "$renameFilePath"
-					osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
-					theFile="$renameFilePath"
-				elif [[ overWrite -eq 1 && -e "$theFile" ]]; then
-					mv "$theFile" "$renameFilePath"
-					theFile="$renameFilePath"
-				fi
-			else
-				theFileName="${movieTitleAndYear}.${fileExt}"
-				osascript -e "set the_File to \"$theFileName\"" -e 'tell application "Automator Runner" to activate & display alert "Error: Add Movie Tags" message "Error: Rename File Failed. Cannot rename the file." & Return & the_File & " already exists."'	
-			fi
-		fi
-		if [[ renameFile -eq 0 && overWrite -eq 0 ]]; then
-			osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
-			mv "$newFile" "$theFile"
-		fi
+    if [[ renameFile -eq 1 && ! "$theFile" = "$renameFilePath" ]]; then
+      if [ ! -e "$renameFilePath" ]; then
+        if [[ overWrite -eq 0 && -e "$newFile" ]]; then
+          mv "$newFile" "$renameFilePath"
+          osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
+          theFile="$renameFilePath"
+        elif [[ overWrite -eq 1 && -e "$theFile" ]]; then
+          mv "$theFile" "$renameFilePath"
+          theFile="$renameFilePath"
+        fi
+      else
+        theFileName="${movieTitleAndYear}.${fileExt}"
+        osascript -e "set the_File to \"$theFileName\"" -e 'tell application "Automator Runner" to activate & display alert "Error: Add Movie Tags" message "Error: Rename File Failed. Cannot rename the file." & Return & the_File & " already exists."'  
+      fi
+    fi
+    if [[ renameFile -eq 0 && overWrite -eq 0 ]]; then
+      osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
+      mv "$newFile" "$theFile"
+    fi
 
 	else
 		if [[ useFileNameForSearch -eq 1 ]]; then
@@ -463,7 +468,6 @@ function substituteISO88591 () {
 
 #####################################################################################
 # MAIN SCRIPT
-
 while read theFile
 do
 	if [[ ! "${overWrite}" ]]; then overWrite=0; fi
@@ -493,8 +497,7 @@ do
 		fi
 	
 		if [[ removeTags -eq 1 && addTags -eq 0 ]]; then
-		"$atomicParsley64Path" "$theFile" --overWrite --metaEnema
-		#"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
+		"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
 		fi
 
 		if [[ addTags -eq 1 || addChaps -eq 1 ]]; then			
@@ -514,13 +517,13 @@ do
 				pixelWidth=$(echo "$getResolution" | sed 's|x.*||')
 				pixelHeight=$(echo "$getResolution" | sed 's|.*x||')
 				if [[ pixelWidth -gt 1279 || pixelHeight -gt 719 ]]; then
-					"$mp4tagsPath" -H 1 "$theFile"
+					"$mp4tagsPath" -hdvideo 1 "$theFile"
 				fi
 
 				# Set Cnid Number
-				if [[ ! -z "$cnidNum" ]]; then
-					"$mp4tagsPath" -I "$cnidNum" "$theFile"
-				fi
+        # if [[ ! -z "$cnidNum" ]]; then
+        #   "$mp4tagsPath" -I "$cnidNum" "$theFile"
+        # fi
 			fi
 			
 			#chapterFile="${outputDir}/${movieName}.chapters.txt"
