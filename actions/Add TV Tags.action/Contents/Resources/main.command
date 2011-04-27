@@ -3,28 +3,28 @@
 # main.command
 # Add TV Tags
 
-#  Created by Robert Yamada on 10/2/09.
-#  20091026-0 Added mp4tags, mp4info & mp4chaps. Added HD-Flag and Add Chaps from file
-#  20091119-1 Changed rm command to -rf
-#  20091119-2 Reorganized to bring it inline to changes made in add movie tags
-#  20091119-3 Fixed overWrite to leave original untouched if set to 0
-#  20091119-4 Moved add cover art to atomicParsley 
-#  20091126-5 Added substituteISO88591 subroutine
-#  20101202-6 Added preserve/set cnid
+#	 Created by Robert Yamada on 10/2/09.
+#	 20091026-0 Added mp4tags, mp4info & mp4chaps. Added HD-Flag and Add Chaps from file
+#	 20091119-1 Changed rm command to -rf
+#	 20091119-2 Reorganized to bring it inline to changes made in add movie tags
+#	 20091119-3 Fixed overWrite to leave original untouched if set to 0
+#	 20091119-4 Moved add cover art to atomicParsley 
+#	 20091126-5 Added substituteISO88591 subroutine
+#	 20101202-6 Added preserve/set cnid
 
-#  Copyright (c) 2009-2010 Robert Yamada
-#	This program is free software: you can redistribute it and/or modify
-#	it under the terms of the GNU General Public License as published by
-#	the Free Software Foundation, either version 3 of the License, or
-#	(at your option) any later version.
+#	 Copyright (c) 2009-2010 Robert Yamada
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-#	This program is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#	GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# GNU General Public License for more details.
 
-#	You should have received a copy of the GNU General Public License
-#	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program.	If not, see <http://www.gnu.org/licenses/>.
 
 scriptPID=$$
 #sortOrder="dvd" # set as default or dvd
@@ -104,7 +104,7 @@ addiTunesTagsTV()
 		shortEpisodeDesc=`echo $episodeDesc | cut -c1-250`
 		len=${#episodeDesc}
 		if [ "$len" -gt "250" ] ; then
-		  shortEpisodeDesc="${shortEpisodeDesc}..."
+			shortEpisodeDesc="${shortEpisodeDesc}..."
 		fi
 		genreList=`"$xpathPath" "$seriesXml" //Genre 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
 		imdb_id=`"$xpathPath" "$seriesXml" //IMDB_ID 2>/dev/null | awk -F\> '{print $2}' | awk -F\< '{print $1}'`
@@ -178,26 +178,26 @@ addiTunesTagsTV()
 		# write tags with mp4v2
 		if [[ overWrite -eq 1 ]]; then
 			if [[ -e "$tvPoster" && "$imgIntegrityTest" -gt 100 ]]; then
-			  #--artwork REMOVE_ALL --overWrite
-			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -picture "$tvPoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
+				#--artwork REMOVE_ALL --overWrite
+				"$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -picture "$tvPoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 			else
-			  #--artwork REMOVE_ALL --overWrite
-			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
+				#--artwork REMOVE_ALL --overWrite
+				"$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
 		elif [[ overWrite -eq 0 ]]; then
 			newFile="${outputDir}/${fileName}-${scriptPID}.${fileExt}"
 			if [[ -e "$tvPoster" && "$imgIntegrityTest" -gt 100 ]]; then
-			  #--artwork REMOVE_ALL
-			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -picture "$tvPoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
+				#--artwork REMOVE_ALL
+				"$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -picture "$tvPoster" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 			else
-			  "$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
+				"$mp4tagsPath" -song "$episodeName" -artist "$movieGuests" -albumartist "$showName" -album "${showName}, Season ${seasonNum}" -disk 1 -disks 1 -year "$releaseDate" -description "$shortEpisodeDesc" -longdesc "$episodeDesc" -network "$tvNetwork" -show "$showName" -episodeid "$episodeID" -season "$seasonNum" -track 1 -tracks 1 -episode "$episodeNum" -type "TV Show" -genre "$movieGenre" -cast "$movieActors" -director "$movieDirector" -swriters "$movieWriters" -comment "{'imdb_id':'${imdb_id}', 'tvdb_id':'${tvdb_id}'}" "$theFile"
 				osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Cover art failed integrity test" & Return & "No artwork was added"'
 			fi
 		fi
 
 	else
-		oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Could not find a match." & Return & "Check TV Show Name, Season Number and Episode Number."'
+		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: Could not find a match." & Return & "Check TV Show Name, Season Number and Episode Number."'
 	fi
 	
 }
@@ -214,7 +214,7 @@ function substituteISO88591 () {
 ##################################################################
 # MAIN SCRIPT
 
-PATH=/bin:/usr/bin:/sbin:/usr/sbin export PATH
+PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin export PATH
 while read theFile
 do
 	if [[ ! "${overWrite}" ]]; then overWrite=0; fi
@@ -223,9 +223,9 @@ do
 	if [[ ! "${sortOrder}" ]]; then sortOrder=0; fi
 	if [[ sortOrder -eq 0 ]]; then sortOrder="default"; fi
 	if [[ sortOrder -eq 1 ]]; then sortOrder="dvd"; fi
-	
+
 	if [[ ! -x "$mp4infoPath" || ! -x "$mp4tagsPath" || ! -x "$mp4artPath" || ! -x "$mp4chapsPath" ]]; then
-    oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: mp4v2 Library cannot be found" & Return & "Please install mp4v2 tools in /usr/local/bin" & Return & "Get mp4v2 at: http://code.google.com/p/mp4v2/"'
+		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: mp4v2 Library cannot be found" & Return & "Please install mp4v2 tools in /usr/local/bin" & Return & "Get mp4v2 at: http://code.google.com/p/mp4v2/"'
 		exit 1
 	fi
 	
@@ -241,7 +241,7 @@ do
 		if [[ -z "$cnidNum" ]]; then
 			cnidNum=$(echo $(( 10000+($RANDOM)%(20000-10000+1) ))$(( 1000+($RANDOM)%(9999-1000+1) )))
 		fi
-	
+		echo 'd'
 		if [[ removeTags -eq 1 && addTags -eq 0 ]]; then
 		"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
 		fi
@@ -251,24 +251,23 @@ do
 				addiTunesTagsTV
 
 				# Set the HD Flag for HD-Video
-				getResolution=$("$mp4infoPath" "$theFile" | egrep "1.*video" | awk -F,\  '{print $4}' | sed 's|\ @.*||')
+				getResolution=$("$mp4infoPath" "$theFile" | egrep "1.*video" | awk -F,\	 '{print $4}' | sed 's|\ @.*||')
 				pixelWidth=$(echo "$getResolution" | sed 's|x.*||')
 				pixelHeight=$(echo "$getResolution" | sed 's|.*x||')
-
 				if [[ pixelWidth -gt 1279 || pixelHeight -gt 719 ]]; then
 					"$mp4tagsPath" -hdvideo 1 "$theFile"
 				fi
 
 				# Set Cnid Number
-				if [[ ! -z "$cnidNum" ]]; then
-					"$mp4tagsPath" -contentid "$cnidNum" "$theFile"
-				fi
+				#if [[ ! -z "$cnidNum" ]]; then
+				# "$mp4tagsPath" -contentid "$cnidNum" "$theFile"
+				#fi
 
 				# Add Chapters if chapter file exists
-				chapterFile="${outputDir}/${fileName}.chapters.txt"
-				if [ -e "$chapterFile" ]; then
-					"$mp4chapsPath" -i "$theFile"
-				fi
+				#chapterFile="${outputDir}/${fileName}.chapters.txt"
+				#if [ -e "$chapterFile" ]; then
+				# "$mp4chapsPath" -i "$theFile"
+				#fi
 				
 				
 				# delete script temp files
@@ -278,11 +277,11 @@ do
 			fi
 
 		else
-			oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Naming Convention." & Return & "Cannot parse the filename." & Return & "Rename your file: TV Show Name - S##E##.m4v "'
+			osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Naming Convention." & Return & "Cannot parse the filename." & Return & "Rename your file: TV Show Name - S##E##.m4v "'
 		fi
 	else
-		oascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Type Extension. Cannot determine if file is mpeg-4 compatible." & Return & "File extension and type must be .mp4 or .m4v."'
+		osascript -e 'tell application "Automator Runner" to activate & display alert "Error: Add TV Tags" message "Error: File Type Extension. Cannot determine if file is mpeg-4 compatible." & Return & "File extension and type must be .mp4 or .m4v."'
 	fi
 	
-	oascript -e "set theFile to POSIX file \"$theFile\"" -e 'tell application "Finder" to update theFile'
+	osascript -e "set theFile to POSIX file \"$theFile\"" -e 'tell application "Finder" to update theFile'
 done

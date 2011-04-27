@@ -315,10 +315,6 @@ function addMovieTags () {
         osascript -e "set the_File to \"$theFileName\"" -e 'tell application "Automator Runner" to activate & display alert "Error: Add Movie Tags" message "Error: Rename File Failed. Cannot rename the file." & Return & the_File & " already exists."'  
       fi
     fi
-    if [[ renameFile -eq 0 && overWrite -eq 0 ]]; then
-      osascript -e "try" -e "set theFile to POSIX file \"$theFile\" as alias" -e "tell application \"Finder\" to move file theFile to trash" -e "end try" > /dev/null
-      mv "$newFile" "$theFile"
-    fi
 
 	else
 		if [[ useFileNameForSearch -eq 1 ]]; then
