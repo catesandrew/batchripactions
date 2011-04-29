@@ -241,7 +241,7 @@ do
 		if [[ -z "$cnidNum" ]]; then
 			cnidNum=$(echo $(( 10000+($RANDOM)%(20000-10000+1) ))$(( 1000+($RANDOM)%(9999-1000+1) )))
 		fi
-		echo 'd'
+
 		if [[ removeTags -eq 1 && addTags -eq 0 ]]; then
 		"$mp4tagsPath" -r AacCdDgGHilmMnNoPsStTywR "$theFile"
 		fi
